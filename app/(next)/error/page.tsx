@@ -32,7 +32,7 @@ export default function ErrorPage({
               Something Went Wrong
             </h1>
             <p className="text-gray-600 max-w-md mx-auto mb-6">
-              We're working to fix the problem. Please try again later.
+              We&apos;re working to fix the problem. Please try again later.
             </p>
             
             {/* Safe error details */}

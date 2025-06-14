@@ -1,38 +1,27 @@
-
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import Image from "next/image";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Cat, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import SearchInput from "@/components/projects/search-input";
 import CategoryFilter from "@/components/projects/category-filter";
 import ProjectGrid from "@/components/projects/projects-grid";
 import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
 
 type SearchPageProps = {
-  searchParams:Promise< {
-    search?:string;
-  }>
-}
+  searchParams: Promise<{
+    search?: string;
+  }>;
+};
 
-
-export const ProjectsPage: React.FC<SearchPageProps> =async ({searchParams}) => {
-     const searchText = (await searchParams).search || "";
-    const projects =await fetchProjectByQuery(searchText)
-    if (projects.length === 0) {
-      return <NoSearchResults />;
-    }
+export const ProjectsPage: React.FC<SearchPageProps> = async ({
+  searchParams,
+}) => {
+  const searchText = (await searchParams).search || "";
+  const projects = await fetchProjectByQuery(searchText);
+  if (projects.length === 0) {
+    return <NoSearchResults />;
+  }
 
   return (
     <div
@@ -57,32 +46,28 @@ export const ProjectsPage: React.FC<SearchPageProps> =async ({searchParams}) => 
         </h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           {/* Search Bar */}
-         <SearchInput />
+          <SearchInput />
 
           {/* Category Filter */}
-         <CategoryFilter />
+          <CategoryFilter />
 
           {/* Create New Button */}
           <Button
             asChild
             className="py-5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
           >
-            <Link href="/projects/create">
-              Create New
-            </Link>
+            <Link href="/projects/create">Create New</Link>
           </Button>
         </div>
       </div>
 
       {/* Projects Grid */}
       <ProjectGrid projects={projects} />
-     
     </div>
   );
 };
 
 export default ProjectsPage;
-
 
 export function NoSearchResults() {
   return (

@@ -1,8 +1,8 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Prisma, Projects } from "@prisma/client";
-import React, { useActionState, useState, useEffect } from "react";
+import { Prisma } from "@prisma/client";
+import React, { useActionState, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ActionResponse, editProject } from "@/actions/projects/edit-project";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { redirect } from "next/navigation";
+import Image from "next/image";
 
 type Props = {
   project: Prisma.ProjectsGetPayload<{ include: { author: true } }>;
@@ -216,7 +216,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Current Image:
                       </p>
-                      <img
+                      <Image
                         src={project.featuredImage}
                         alt="Current featured"
                         className="w-full h-48 object-cover rounded-lg border"

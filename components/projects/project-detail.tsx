@@ -1,6 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -191,7 +190,7 @@ export const ProjectDetailPage:React.FC<ProjectDetailState> = ({project}) => {
                     >
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mb-4 dark:bg-gray-700 dark:border-gray-600" />
                       <h3 className="text-lg font-medium mb-1">Demo Unavailable</h3>
-                      <p className="max-w-xs">This project doesn't have a live demo</p>
+                      <p className="max-w-xs">This project doesn&apos;t have a live demo</p>
                     </div>
                   )}
                 </motion.div>

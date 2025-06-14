@@ -31,11 +31,11 @@ const ContactPage = () => {
           className="text-center mb-16"
         >
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            Let's Connect
+            Let&apos;s Connect
           </h1>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Have a project in mind or want to discuss opportunities? Feel free
-            to reach out - I'm always open to new ideas and collaborations.
+            to reach out - I&apos;m always open to new ideas and collaborations.
           </p>
         </motion.div>
 
