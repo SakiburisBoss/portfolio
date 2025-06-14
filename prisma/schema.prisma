@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Techs {
+  id   Int    @id @default(autoincrement())
+  name String
+  path String
+}
+
+model User {
+  id          String     @id @default(cuid())
+  clerkUserId String     @unique
+  email       String     @unique
+  name        String
+  imageUrl    String?
+  projects    Projects[]
+  comments    Comment[]
+  likes       Like[]
+}
+
+model Projects {
+  id            String    @id @default(cuid())
+  title         String
+  category      String
+  description   String
+  featuredImage String
+  liveDemoUrl   String?
+  author        User      @relation(fields: [authorId ], references: [id])
+  authorId      String
+  comments      Comment[]
+  likes         Like[]
+  createdAt     DateTime  @default(now())
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  project   Projects @relation(fields: [projectId], references: [id])
+  projectId String
+  createdAt DateTime @default(now())
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  isLiked   Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  project   Projects @relation(fields: [projectId], references: [id])
+  projectId String
+  createdAt DateTime @default(now())
+
+  @@unique([authorId, projectId])
+}
