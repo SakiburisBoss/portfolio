@@ -1,15 +1,14 @@
+// app/projects/create/create-project-form.tsx (Client Component)
 "use client";
+
+import { useActionState, useState } from "react";
 import { Variants, Easing } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Prisma } from "@prisma/client";
-import React, { useActionState, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ActionResponse, editProject } from "@/actions/projects/edit-project";
+import { createProject } from "@/actions/projects/create-project";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,36 +16,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
-type Props = {
-  project: Prisma.ProjectsGetPayload<{ include: { author: true } }>;
+type FormState = {
+  success: boolean;
+  error?: string;
+  errors?: Record<string, string>;
 };
 
-const EditProjectPage: React.FC<Props> = ({ project }) => {
-  const projectId = project.id;
-  const [selectedCategory, setSelectedCategory] = useState(project.category);
-  const [liveDemoUrl, setLiveDemoUrl] = useState(project.liveDemoUrl || "");
+const initialState: FormState = {
+  success: false,
+  error: undefined,
+  errors: undefined,
+};
 
-  // Initialize useActionState with projectId bound to the action
-  const [state, formAction, isPending] = useActionState<ActionResponse, FormData>(
-    editProject.bind(null, projectId),
-    { success: false, message: undefined, errors: undefined }
-  );
+export default function CreateProjectForm() {
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [featuredImage, setFeaturedImage] = useState<File | null>(null);
+  const [liveDemoUrl, setLiveDemoUrl] = useState<string>("");
 
-  // Handle category change for select component
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
   };
 
-  // Handle live demo URL input change
+  const [state, formAction, isPending] = useActionState(
+    async (_prevState: FormState, formData: FormData): Promise<FormState> => {
+      if (featuredImage) {
+        formData.append("featuredImage", featuredImage);
+      }
+
+      const result = await createProject(formData);
+
+      if (result.success) {
+        setFeaturedImage(null);
+        setLiveDemoUrl("");
+      }
+
+      return {
+        success: result.success,
+        error: result.message,
+        errors: result.errors,
+      };
+    },
+    initialState
+  );
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setFeaturedImage(file);
+  };
+
   const handleLiveDemoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLiveDemoUrl(e.target.value);
   };
 
-
-
-  const cardVariants: Variants = {
+ const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -57,23 +82,22 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
     },
   },
 };
-
   return (
     <motion.div variants={cardVariants} initial="hidden" animate="visible">
       <Card
         className="
-        bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden
-        dark:bg-gray-800/80 dark:border dark:border-gray-700
-        group relative transition-all
-        dark:before:absolute dark:before:-inset-[2px] dark:before:z-[-1]
-        dark:before:rounded-[inherit] dark:before:bg-[conic-gradient(from_var(--angle),transparent_20%,rgba(192,132,252,0.6)_50%,transparent_80%)]
-        dark:before:opacity-0 dark:hover:before:opacity-100
-        dark:before:transition-opacity dark:before:duration-500
-        dark:after:absolute dark:after:-inset-[3px] dark:after:z-[-2]
-        dark:after:rounded-[inherit] dark:after:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.4)_0%,transparent_70%)]
-        dark:after:blur-[12px] dark:after:opacity-0 dark:hover:after:opacity-100
-        dark:after:transition-opacity dark:after:duration-700
-      "
+          bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden
+          dark:bg-gray-800/80 dark:border dark:border-gray-700
+          group relative transition-all
+          dark:before:absolute dark:before:-inset-[2px] dark:before:z-[-1]
+          dark:before:rounded-[inherit] dark:before:bg-[conic-gradient(from_var(--angle),transparent_20%,rgba(192,132,252,0.6)_50%,transparent_80%)]
+          dark:before:opacity-0 dark:hover:before:opacity-100
+          dark:before:transition-opacity dark:before:duration-500
+          dark:after:absolute dark:after:-inset-[3px] dark:after:z-[-2]
+          dark:after:rounded-[inherit] dark:after:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.4)_0%,transparent_70%)]
+          dark:after:blur-[12px] dark:after:opacity-0 dark:hover:after:opacity-100
+          dark:after:transition-opacity dark:after:duration-700
+        "
       >
         <CardContent className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -86,11 +110,9 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   "dark:text-white dark:border-gray-700"
                 )}
               >
-                Edit Project
+                Project Details
               </h2>
-
-              {/* Status Messages */}
-              {state.message && (
+              {(state.error || state.success) && (
                 <div
                   className={cn(
                     "mb-4 p-4 rounded-xl",
@@ -99,7 +121,9 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                       : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
                   )}
                 >
-                  {state.message}
+                  {state.success
+                    ? "Project created successfully!"
+                    : state.error}
                   {state.errors && (
                     <ul className="mt-2 list-disc list-inside">
                       {Object.entries(state.errors).map(([field, error]) => (
@@ -112,7 +136,6 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   )}
                 </div>
               )}
-
               <form action={formAction} className="space-y-6">
                 {/* Title */}
                 <div className="space-y-2">
@@ -126,7 +149,6 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                     type="text"
                     id="title"
                     name="title"
-                    defaultValue={project.title}
                     placeholder="Enter project title"
                     className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700/50 dark:border-gray-600 dark:focus:ring-blue-500"
                     required
@@ -180,7 +202,6 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   <Textarea
                     id="description"
                     name="description"
-                    defaultValue={project.description}
                     placeholder="Enter project description"
                     rows={5}
                     className="py-3 px-4 rounded-xl border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700/50 dark:border-gray-600 dark:focus:ring-blue-500"
@@ -194,7 +215,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                     className="font-medium text-gray-700 dark:text-gray-300"
                   >
                     Live Demo URL
-                    <span className="text-gray-500"> (optional)</span>
+                    <span className="text-gray-500">(optional)</span>
                   </Label>
                   <Input
                     type="url"
@@ -209,29 +230,19 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
 
                 {/* Featured Image */}
                 <div className="space-y-2">
+                  {" "}
                   <Label
                     htmlFor="featuredImage"
                     className="font-medium text-gray-700 dark:text-gray-300"
                   >
                     Featured Image
                   </Label>
-                  {project.featuredImage && (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        Current Image:
-                      </p>
-                      <Image
-                        src={project.featuredImage}
-                        alt="Current featured"
-                        className="w-full h-48 object-cover rounded-lg border"
-                      />
-                    </div>
-                  )}
                   <Input
                     type="file"
                     id="featuredImage"
                     name="featuredImage"
                     accept="image/jpeg,image/png,image/gif,image/webp,image/jpg"
+                    onChange={handleFileChange}
                     className="px-4 rounded-xl border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700/50 dark:border-gray-600 dark:focus:ring-blue-500"
                   />
                 </div>
@@ -247,9 +258,9 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   )}
                 >
                   {isPending ? (
-                    <span className="animate-pulse">Updating...</span>
+                    <span className="animate-pulse">Creating...</span>
                   ) : (
-                    "Update Project"
+                    "Create Project"
                   )}
                 </Button>
               </form>
@@ -300,6 +311,4 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
       </Card>
     </motion.div>
   );
-};
-
-export default EditProjectPage;
+}
