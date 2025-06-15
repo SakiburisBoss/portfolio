@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
-
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
 import SearchInput from "@/components/projects/search-input";
 import CategoryFilter from "@/components/projects/category-filter";
 import ProjectGrid from "@/components/projects/projects-grid";
 import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
+import { NoSearchResults } from "@/components/no-result";
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -68,25 +67,3 @@ export const ProjectsPage: React.FC<SearchPageProps> = async ({
 };
 
 export default ProjectsPage;
-
-export function NoSearchResults() {
-  return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      {/* Icon */}
-      <div className="mb-4 rounded-full bg-muted p-4">
-        <Search className="h-8 w-8 text-muted-foreground" />
-      </div>
-
-      {/* Title */}
-      <h3 className="text-xl font-semibold text-foreground">
-        No Results Found
-      </h3>
-
-      {/* Description */}
-      <p className="mt-2 text-muted-foreground">
-        We could not find any projects matching your search. Try a different
-        keyword or phrase.
-      </p>
-    </div>
-  );
-}
