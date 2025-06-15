@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
 
-const page = async ({ params }: { params: { id: number } }) => {
+type TechPageParams = {
+  params:Promise <{id:string}>
+}
+
+const page: React.FC<TechPageParams> = async ({params}) => {
   const id =Number((await params).id);
 
 
