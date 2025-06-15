@@ -14,7 +14,7 @@ const NavBar = () => {
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-red-600 to-indigo-600 dark:from-purple-400 dark:via-red-400 dark:to-indigo-400">
               Sakibur
             </span>
-            <span className="text-red-500">'s</span>
+            <span className="text-red-500">&apos;s</span>
           </span>
           <span className="bg-gradient-to-r dark:from-cyan-400 dark:via-yellow-400 dark:to-green-400 bg-clip-text text-transparent from-cyan-700 via-yellow-700 to-green-700 font-extrabold">
             Portfolio
