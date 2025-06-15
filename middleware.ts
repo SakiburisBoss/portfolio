@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const ADMIN_EMAIL = "iamsakibur@gmail.com";
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req:NextRequest) => {
   const { pathname } = req.nextUrl;
 
   // Skip middleware for static files

@@ -4,12 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { v2 as cloudinary } from 'cloudinary';
 
 // Define the return type
 export type TechFormState = {
   success: boolean;
   error?: string;
 };
+
+// Configure Cloudinary
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 export const createTech = async (
   prevState: TechFormState | null,
@@ -19,9 +27,15 @@ export const createTech = async (
     const name = formData.get("name") as string;
     const imageFile = formData.get("path") as File;
 
-    // Validation
-    if (!name || !imageFile) {
-      return { success: false, error: "Name and image are required" };
+    // Sanitize and validate name
+    const sanitizedName = name.trim();
+    if (!sanitizedName || sanitizedName.length > 100) {
+      return { success: false, error: "Name must be between 1-100 characters" };
+    }
+
+    // Validate image
+    if (!imageFile) {
+      return { success: false, error: "Image is required" };
     }
 
     if (!imageFile.type.startsWith("image/")) {
@@ -32,26 +46,42 @@ export const createTech = async (
       return { success: false, error: "File too large (max 2MB)" };
     }
 
+    // Upload to Cloudinary
     const arrayBuffer = await imageFile.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-    const imageUrl = `data:${imageFile.type};base64,${base64}`;
+    const buffer = Buffer.from(arrayBuffer);
+    
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: 'tech-icons' },
+        (error, result) => {
+          if (error) reject(error);
+          if (result) resolve(result);
+        }
+      ).end(buffer);
+    });
 
-    const {userId} = await auth();
+    const imageUrl = result.secure_url;
 
-    if(!userId){
+    // Verify user permissions
+    const { userId } = await auth();
+    if (!userId) {
       return { success: false, error: "User not authenticated" };
     }
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
+    
+   
+    const user = await (await clerkClient()).users.getUser(userId);
     const emails = user.emailAddresses.map(e => e.emailAddress);
-    if (!emails.includes('iamsakibur@gmail.com')) {
+    
+    const allowedEmail = process.env.ADMIN_EMAIL || 'iamsakibur@gmail.com';
+    if (!emails.includes(allowedEmail)) {
       return { success: false, error: "Forbidden" };
     }
 
-    // Check if tech with the same name already exists
+    // Check for existing tech
     const existingTech = await prisma.techs.findFirst({
-      where: { name },
+      where: { name: sanitizedName },
     });
+    
     if (existingTech) {
       return { success: false, error: "Tech with this name already exists" };
     }
@@ -59,18 +89,29 @@ export const createTech = async (
     // Create database record
     await prisma.techs.create({
       data: {
-        name,
+        name: sanitizedName,
         path: imageUrl,
       },
     });
 
     revalidatePath("/me/techs");
+    return { success: true };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error("Create Tech Error:", error);
+    
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message || "Failed to create tech",
+      };
+    }
+    
     return {
       success: false,
-      error: error.message || "Failed to create tech",
+      error: "An unknown error occurred",
     };
+  } finally {
+    redirect("/me/techs");
   }
-  redirect("/me/techs");
 };

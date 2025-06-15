@@ -4,11 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { v2 as cloudinary } from 'cloudinary';
 
+// Define the return type
 export type UpdateTechFormState = {
   success: boolean;
   error?: string;
 };
+
+// Configure Cloudinary
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 export const updateTech = async (
   id: number,
@@ -19,8 +28,15 @@ export const updateTech = async (
     const name = formData.get("name") as string;
     const imageFile = formData.get("path") as File;
 
-    // If a new image is provided, validate and process it
+    // Sanitize and validate name
+    const sanitizedName = name.trim();
+    if (!sanitizedName || sanitizedName.length > 100) {
+      return { success: false, error: "Name must be between 1-100 characters" };
+    }
+
     let imageUrl: string | undefined;
+    
+    // Process image if provided
     if (imageFile && imageFile.size > 0) {
       if (!imageFile.type.startsWith("image/")) {
         return { success: false, error: "Only image files are allowed" };
@@ -30,45 +46,65 @@ export const updateTech = async (
         return { success: false, error: "File too large (max 2MB)" };
       }
 
+      // Upload to Cloudinary
       const arrayBuffer = await imageFile.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
-      imageUrl = `data:${imageFile.type};base64,${base64}`;
+      const buffer = Buffer.from(arrayBuffer);
+      
+      const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: 'tech-icons' },
+          (error, result) => {
+            if (error) reject(error);
+            if (result) resolve(result);
+          }
+        ).end(buffer);
+      });
+
+      imageUrl = result.secure_url;
     }
 
-    const {userId} = await auth();
-
+    // Verify user permissions
+    const { userId } = await auth();
     if (!userId) {
       return { success: false, error: "User not authenticated" };
     }
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-
-    const emails = user.emailAddresses.map(e=>e.emailAddress);
-    if(!emails.includes('iamsakibur@gmail.com')){
+    
+    
+    const user = await (await clerkClient()).users.getUser(userId);
+    const emails = user.emailAddresses.map(e => e.emailAddress);
+    
+    const allowedEmail = process.env.ADMIN_EMAIL || 'iamsakibur@gmail.com';
+    if (!emails.includes(allowedEmail)) {
       return { success: false, error: "Forbidden" };
-    }
-
-    // If no name is provided, return an error
-    if (!name) {
-      return { success: false, error: "Name is required" };
     }
 
     // Update the database record
     await prisma.techs.update({
       where: { id },
       data: {
-        name,
+        name: sanitizedName,
         ...(imageUrl && { path: imageUrl }), // Only update image if a new one is provided
       },
     });
 
     revalidatePath("/me/techs");
-  } catch (error: any) {
+    return { success: true };
+
+  } catch (error: unknown) {
     console.error("Update tech error:", error);
+    
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message || "Failed to update tech",
+      };
+    }
+    
     return {
       success: false,
-      error: error.message || "Failed to update tech",
+      error: "An unknown error occurred",
     };
+  } finally {
+    redirect("/me/techs");
   }
-  redirect("/me/techs");
 };
