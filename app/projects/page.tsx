@@ -5,19 +5,17 @@ import SearchInput from "@/components/projects/search-input";
 import CategoryFilter from "@/components/projects/category-filter";
 import ProjectGrid from "@/components/projects/projects-grid";
 import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
-import NoSearchResults from "@/components/no-result"; // Changed to default import
+import NoSearchResults from "@/components/no-result";
 
-type SearchPageProps = {
-  searchParams: {
-    search?: string;
-  };
-};
-
-// Removed named export and made it default
 export default async function ProjectsPage({
   searchParams,
-}: SearchPageProps) {
-  const searchText = searchParams.search || "";
+}: {
+  searchParams?: {
+    search?: string;
+    category?: string;
+  };
+}) {
+  const searchText = searchParams?.search || "";
   const projects = await fetchProjectByQuery(searchText);
 
   return (
