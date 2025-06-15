@@ -7,7 +7,6 @@ import {
   Send,
   Linkedin,
   Github,
-  Twitter,
   Facebook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
