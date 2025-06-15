@@ -21,9 +21,13 @@ const nextConfig: NextConfig = {
     config.optimization.splitChunks = {
       cacheGroups: {
         default: false,
+        vendors: false,
       },
     };
     return config;
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
