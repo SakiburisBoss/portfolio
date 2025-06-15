@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 
-export function NoSearchResults() {
+export default function NoSearchResults() {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       {/* Icon */}

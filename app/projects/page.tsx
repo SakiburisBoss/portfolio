@@ -5,22 +5,20 @@ import SearchInput from "@/components/projects/search-input";
 import CategoryFilter from "@/components/projects/category-filter";
 import ProjectGrid from "@/components/projects/projects-grid";
 import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
-import { NoSearchResults } from "@/components/no-result";
+import NoSearchResults from "@/components/no-result"; // Changed to default import
 
 type SearchPageProps = {
-  searchParams: Promise<{
+  searchParams: {
     search?: string;
-  }>;
+  };
 };
 
-export const ProjectsPage: React.FC<SearchPageProps> = async ({
+// Removed named export and made it default
+export default async function ProjectsPage({
   searchParams,
-}) => {
-  const searchText = (await searchParams).search || "";
+}: SearchPageProps) {
+  const searchText = searchParams.search || "";
   const projects = await fetchProjectByQuery(searchText);
-  if (projects.length === 0) {
-    return <NoSearchResults />;
-  }
 
   return (
     <div
@@ -60,10 +58,12 @@ export const ProjectsPage: React.FC<SearchPageProps> = async ({
         </div>
       </div>
 
-      {/* Projects Grid */}
-      <ProjectGrid projects={projects} />
+      {/* Show no results message if projects are empty */}
+      {projects.length === 0 ? (
+        <NoSearchResults />
+      ) : (
+        <ProjectGrid projects={projects} />
+      )}
     </div>
   );
-};
-
-export default ProjectsPage;
+}
