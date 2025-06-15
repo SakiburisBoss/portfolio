@@ -26,11 +26,14 @@ const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
   category: z.string().min(1, "Category is required"),
   description: z.string().min(1, "Description is required"),
-  liveDemoUrl: z
-    .string()
-    .url("Invalid URL format")
+ liveDemoUrl: z
+    .union([
+      z.string().url("Invalid URL format"),
+      z.literal(""),
+      z.null()
+    ])
     .optional()
-    .transform((val) => val || null),
+    .transform(val => val === "" ? null : val),
   featuredImage: z.string().optional(),
 });
 

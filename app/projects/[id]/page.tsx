@@ -25,6 +25,7 @@ const page: React.FC<ProjectDetailPageProps> = async ({ params }) => {
     },
   });
 
+
   if (!project) {
     return notFound();
   }

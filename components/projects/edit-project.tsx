@@ -29,10 +29,14 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
   const [liveDemoUrl, setLiveDemoUrl] = useState(project.liveDemoUrl || "");
 
   // Initialize useActionState with projectId bound to the action
-  const [state, formAction, isPending] = useActionState<ActionResponse, FormData>(
-    editProject.bind(null, projectId),
-    { success: false, message: undefined, errors: undefined }
-  );
+  const [state, formAction, isPending] = useActionState<
+    ActionResponse,
+    FormData
+  >(editProject.bind(null, projectId), {
+    success: false,
+    message: undefined,
+    errors: undefined,
+  });
 
   // Handle category change for select component
   const handleCategoryChange = (value: string) => {
@@ -44,19 +48,17 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
     setLiveDemoUrl(e.target.value);
   };
 
-
-
   const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { 
-      duration: 0.5, 
-      ease: "easeOut" as Easing  // Type assertion here
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut" as Easing, // Type assertion here
+      },
     },
-  },
-};
+  };
 
   return (
     <motion.div variants={cardVariants} initial="hidden" animate="visible">
@@ -216,14 +218,17 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                     Featured Image
                   </Label>
                   {project.featuredImage && (
-                    <div className="mb-3">
+                    <div className="mb-3 relative h-48">
+                      {" "}
+                      {/* Added relative positioning */}
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Current Image:
                       </p>
                       <Image
                         src={project.featuredImage}
+                        fill
                         alt="Current featured"
-                        className="w-full h-48 object-cover rounded-lg border"
+                        className="object-cover rounded-lg border pointer-events-none" // Removed w-full h-48, added pointer-events-none
                       />
                     </div>
                   )}

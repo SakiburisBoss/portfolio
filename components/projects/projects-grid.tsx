@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+import { Easing, motion, Variants } from "framer-motion";
 import Link from "next/link";
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
@@ -13,16 +13,25 @@ type ProjectsPageProps = {
   }>[];
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
+ const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut" as Easing, // Type assertion here
+      },
+    },
+  };
 
 const ProjectGrid: React.FC<ProjectsPageProps> = ({ projects }) => {
+
+  console.log("Projects with authors:", projects.map(p => ({
+    title: p.title,
+    author: p.author.name,
+    imageUrl: p.author.imageUrl
+  })));
   return (
     <div className="relative grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {projects?.length > 0
