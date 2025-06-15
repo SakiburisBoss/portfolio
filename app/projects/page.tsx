@@ -1,21 +1,23 @@
+// app/projects/page.tsx
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import SearchInput from "@/components/projects/search-input";
 import CategoryFilter from "@/components/projects/category-filter";
 import ProjectGrid from "@/components/projects/projects-grid";
-import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
+
 import NoSearchResults from "@/components/no-result";
+import { fetchProjectByQuery } from "@/lib/query/fetch-projec";
 
 export default async function ProjectsPage({
-  searchParams,
+  searchParams
 }: {
-  searchParams?: {
-    search?: string;
-    category?: string;
-  };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const searchText = searchParams?.search || "";
+  // Safely extract search parameter
+  const searchQuery = searchParams?.search;
+  const searchText = Array.isArray(searchQuery) ? searchQuery[0] : searchQuery || "";
+  
   const projects = await fetchProjectByQuery(searchText);
 
   return (
@@ -40,13 +42,8 @@ export default async function ProjectsPage({
           Projects
         </h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-          {/* Search Bar */}
           <SearchInput />
-
-          {/* Category Filter */}
           <CategoryFilter />
-
-          {/* Create New Button */}
           <Button
             asChild
             className="py-5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
@@ -56,7 +53,6 @@ export default async function ProjectsPage({
         </div>
       </div>
 
-      {/* Show no results message if projects are empty */}
       {projects.length === 0 ? (
         <NoSearchResults />
       ) : (
