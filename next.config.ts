@@ -16,22 +16,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
-  webpack: (config) => {
-    config.cache = false;
-    config.optimization.splitChunks = {
-      cacheGroups: {
-        default: false,
-        vendors: false,
-      },
-    };
-    return config;
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
 };
 
 export default nextConfig;
