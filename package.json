@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "postinstall": "prisma generate",
     "lint:fix": "eslint --fix .",
     "prebuild": "npm run lint:fix"
   },
