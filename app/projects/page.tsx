@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import ProjectGrid from "@/components/projects/projects-grid";
-
 import NoSearchResults from "@/components/no-result";
 import Filters from "@/components/filters";
 import { fetchProjects } from "@/lib/query/fetch-project";
-import { auth } from "@clerk/nextjs/server";
+
 
 
 type SearchPageProps = {

@@ -1,16 +1,13 @@
-
-import EditTechPage from "@/components/home/techs/edit-tech";
+import EditTechPage from "@/components/techs/edit-tech";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-
 type TechPageParams = {
-  params:Promise <{id:string}>
-}
+  params: Promise<{ id: string }>;
+};
 
-const page: React.FC<TechPageParams> = async ({params}) => {
-  const id =Number((await params).id);
-
+const page: React.FC<TechPageParams> = async ({ params }) => {
+  const id = Number((await params).id);
 
   const tech = await prisma.techs.findUnique({
     where: { id },
@@ -21,9 +18,7 @@ const page: React.FC<TechPageParams> = async ({params}) => {
     notFound();
   }
 
-  return (
-   <EditTechPage tech={tech} />
-  );
+  return <EditTechPage tech={tech} />;
 };
 
 export default page;

@@ -1,5 +1,6 @@
 import ProjectDetailPage from "@/components/projects/project-detail";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import React from "react";
 
@@ -15,13 +16,7 @@ const page: React.FC<ProjectDetailPageProps> = async ({ params }) => {
       id: id,
     },
     include: {
-      author: {
-        select: {
-          name: true,
-          email: true,
-          imageUrl: true,
-        },
-      },
+      author: true,
     },
   });
 
@@ -30,7 +25,11 @@ const page: React.FC<ProjectDetailPageProps> = async ({ params }) => {
     return notFound();
   }
 
-  return <ProjectDetailPage project={project} />;
+  const {userId} = await auth()
+
+  const isProjectOwner = project.author.clerkUserId === userId
+
+  return <ProjectDetailPage project={project} isProjectOwner={isProjectOwner} />;
 };
 
 export default page;

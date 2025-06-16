@@ -9,23 +9,23 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
-import { useEffect, useState } from "react";
 import { deleteProject } from "@/actions/projects/delete-project";
 import { Loader2, Trash2 } from "lucide-react";
-import { set } from "zod";
+import { useState } from "react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{
     include: {
-      author: { select: { name: true; email: true; imageUrl: true } };
+      author: true;
     };
   }>;
+  isProjectOwner: boolean;
 };
 
 export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   project,
+  isProjectOwner,
 }) => {
-
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -242,41 +242,46 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
-                  <Button
-                    asChild
-                    className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
-                  >
-                    <Link href={`/projects/${project.id}/edit`}>
-                      Edit Project
-                    </Link>
-                  </Button>
+                  {isProjectOwner && (
+                    <Button
+                      asChild
+                      className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
+                    >
+                      <Link href={`/projects/${project.id}/edit`}>
+                        Edit Project
+                      </Link>
+                    </Button>
+                  )}
+
                   <Button
                     variant="outline"
                     className="cursor-pointer flex-1 py-6 rounded-xl border-gray-300 text-gray-900 font-bold shadow-sm hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 transition-all duration-300"
                   >
                     View Code
                   </Button>
-                  <Button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className={cn(
-                      "py-6 rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:shadow-lg cursor-pointer",
-                      "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700",
-                      "disabled:opacity-70 disabled:cursor-not-allowed"
-                    )}
-                  >
-                    {isDeleting ? (
-                      <span className="flex items-center justify-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Deleting...
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </span>
-                    )}
-                  </Button>
+                  {isProjectOwner && (
+                    <Button
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className={cn(
+                        "py-6 rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:shadow-lg cursor-pointer",
+                        "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700",
+                        "disabled:opacity-70 disabled:cursor-not-allowed"
+                      )}
+                    >
+                      {isDeleting ? (
+                        <span className="flex items-center justify-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </span>
+                      )}
+                    </Button>
+                  )}
                 </div>
                 {deleteError && (
                   <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">

@@ -36,11 +36,6 @@ export default clerkMiddleware(async (auth, req:NextRequest) => {
       return NextResponse.next();
     }
 
-    // Handle project creation - Authenticated users only
-    if (pathname === "/projects/create") {
-      const { userId, redirectToSignIn } = await auth();
-      return userId ? NextResponse.next() : redirectToSignIn();
-    }
 
     return NextResponse.next();
   } catch (error) {

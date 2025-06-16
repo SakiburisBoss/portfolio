@@ -5,13 +5,8 @@ import { prisma } from "../prisma";
 // Define the return type with author information
 type ProjectWithAuthor = Prisma.ProjectsGetPayload<{
   include: {
-    author: {
-      select: {
-        name: true;
-        imageUrl: true;
-      }
-    }
-  }
+    author: true;
+  };
 }>;
 
 export const fetchProjects = async (
@@ -22,24 +17,21 @@ export const fetchProjects = async (
     const projects = await prisma.projects.findMany({
       where: {
         AND: [
-          search ? {
-            OR: [
-              { title: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } }
-            ]
-          } : {},
-          category ? { category: { equals: category } } : {}
-        ]
+          search
+            ? {
+                OR: [
+                  { title: { contains: search, mode: "insensitive" } },
+                  { description: { contains: search, mode: "insensitive" } },
+                ],
+              }
+            : {},
+          category ? { category: { equals: category } } : {},
+        ],
       },
       include: {
-        author: {
-          select: {
-            name: true,
-            imageUrl: true
-          }
-        }
+        author: true,
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     return projects;
