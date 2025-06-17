@@ -1,5 +1,5 @@
 "use client";
-import { Rocket, Home, Search, ArrowLeft } from 'lucide-react';
+import { Rocket, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
@@ -22,7 +22,7 @@ export default function NotFound() {
               Page Not Found
             </h2>
             <p className="text-gray-600 dark:text-indigo-200/80 max-w-md mx-auto">
-              The page you're looking for might have been moved, deleted, or never existed.
+              The page you are looking for might have been moved, deleted, or never existed.
             </p>
           </div>
           
