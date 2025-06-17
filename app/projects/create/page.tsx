@@ -1,8 +1,8 @@
 "use client"; // Convert to client component
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Variants, Easing } from "framer-motion";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,14 +48,19 @@ const initialState: FormState = {
 
 export default function CreateProjectPage() {
 
-  const { isSignedIn } = useUser();
-  if (!isSignedIn) {
-    if (confirm("Please sign in to create a project")) {
-      redirect("/sign-in");
-    } else {
-      redirect("/projects"); 
+ const { isSignedIn } = useUser();
+  const router = useRouter();
+
+  // Move authentication check to useEffect
+  useEffect(() => {
+    if (!isSignedIn) {
+      if (confirm("Please sign in to create a project")) {
+        router.push("/sign-in");
+      } else {
+        router.push("/projects");
+      }
     }
-  }
+  }, [isSignedIn, router]);
 
    const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
