@@ -4,7 +4,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import NavBar from "@/components/home/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 import UserSyncTrigger from "@/components/user-sync";
-
 export const metadata: Metadata = {
   icons: {
     icon: [
