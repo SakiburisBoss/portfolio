@@ -27,6 +27,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
   const projectId = project.id;
   const [selectedCategory, setSelectedCategory] = useState(project.category);
   const [liveDemoUrl, setLiveDemoUrl] = useState(project.liveDemoUrl || "");
+  const [codes,setCodes] = useState(project.codes || "");
 
   // Initialize useActionState with projectId bound to the action
   const [state, formAction, isPending] = useActionState<
@@ -46,6 +47,11 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
   // Handle live demo URL input change
   const handleLiveDemoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLiveDemoUrl(e.target.value);
+  };
+
+  // Handle codes input change
+  const handleCodesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCodes(e.target.value);
   };
 
   const cardVariants: Variants = {
@@ -241,6 +247,26 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   />
                 </div>
 
+                {/* Github Code Link */}
+
+                 <div className="space-y-2">
+                  <Label
+                    htmlFor="liveDemoUrl"
+                    className="font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Github Code Link
+                    <span className="text-gray-500"> (optional)</span>
+                  </Label>
+                  <Input
+                    type="url"
+                    id="codes"
+                    name="codes"
+                    value={codes}
+                    onChange={handleCodesChange}
+                    placeholder="Enter Github repository URL (e.g., https://github.com/.....)"
+                    className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700/50 dark:border-gray-600 dark:focus:ring-blue-500"
+                  />
+                </div>
                 {/* Submit Button */}
                 <Button
                   type="submit"

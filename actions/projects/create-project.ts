@@ -35,6 +35,14 @@ const projectSchema = z.object({
     .optional()
     .transform(val => val === "" ? null : val), // Convert empty string to null
   featuredImage: z.string().optional(),
+  codes: z
+    .union([
+      z.string().url("Invalid URL format"),
+      z.literal(""),
+      z.null()
+    ])
+    .optional()
+    .transform(val => val === "" ? null : val),
 });
 
 // Cloudinary upload function
@@ -137,6 +145,10 @@ export async function createProject(
     const liveDemoUrlInput = formData.get("liveDemoUrl");
     const liveDemoUrl = liveDemoUrlInput === "" ? null : liveDemoUrlInput;
 
+    // Get form data
+    const codesInput = formData.get("codes");
+    const codes = codesInput === "" ? null : codesInput;
+
     // Validate form data
     const validatedData = projectSchema.parse({
       title: formData.get("title"),
@@ -144,6 +156,7 @@ export async function createProject(
       description: formData.get("description"),
       liveDemoUrl: liveDemoUrl,
       featuredImage: featuredImageUrl,
+      codes: codes,
     });
 
     // Create project in database
@@ -154,6 +167,7 @@ export async function createProject(
         description: validatedData.description,
         liveDemoUrl: validatedData.liveDemoUrl, // Can be null
         featuredImage: validatedData.featuredImage || "",
+        codes: validatedData.codes,
         authorId: user.id,
       },
     });

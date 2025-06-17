@@ -256,6 +256,15 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   <Button
                     variant="outline"
                     className="cursor-pointer flex-1 py-6 rounded-xl border-gray-300 text-gray-900 font-bold shadow-sm hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 transition-all duration-300"
+                    onClick={() => {
+                      project.codes
+                        ? window.open(
+                            project.codes,
+                            "_blank",
+                            "noopener,noreferrer"
+                          )
+                        : alert("Source code not available for this project");
+                    }}
                   >
                     View Code
                   </Button>

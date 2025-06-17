@@ -35,6 +35,14 @@ const projectSchema = z.object({
     .optional()
     .transform(val => val === "" ? null : val),
   featuredImage: z.string().optional(),
+  codes: z
+    .union([
+      z.string().url("Invalid URL format"),
+      z.literal(""),
+      z.null()
+    ])
+    .optional()
+    .transform(val => val === "" ? null : val),
 });
 
 // Cloudinary upload function
@@ -129,6 +137,7 @@ export async function editProject(
       description: formData.get("description"),
       liveDemoUrl: formData.get("liveDemoUrl"),
       featuredImage: featuredImageUrl,
+      codes: formData.get("codes"),
     });
 
     // Update project in database
@@ -140,6 +149,7 @@ export async function editProject(
         description: validatedData.description,
         liveDemoUrl: validatedData.liveDemoUrl,
         featuredImage: featuredImageUrl || undefined, // Only update if new image
+        codes: validatedData.codes,
       },
     });
 

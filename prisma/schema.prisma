@@ -35,8 +35,8 @@ model Projects {
   description   String
   featuredImage String
   liveDemoUrl   String?
+  codes         String?
   author        User      @relation(fields: [authorId ], references: [id])
   authorId      String
- 
   createdAt     DateTime  @default(now())
 }
