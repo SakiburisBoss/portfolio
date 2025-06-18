@@ -7,17 +7,17 @@ import UserSyncTrigger from "@/components/user-sync";
 export const metadata: Metadata = {
   icons: {
     icon: [
-      { 
-        url: "/favicon.svg", 
-        type: "image/svg+xml" 
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
       },
       //Fallback for Safari
-      { 
-        url: "/favicon.ico", 
-        type: "image/x-icon", 
-        sizes: "any"
-      }
-    ]
+      {
+        url: "/favicon.ico",
+        type: "image/x-icon",
+        sizes: "any",
+      },
+    ],
   },
   title: "Sakibur's Portfolio",
   description:
@@ -36,8 +36,8 @@ export default function RootLayout({
         <body className="container">
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <NavBar />
