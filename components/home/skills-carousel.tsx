@@ -56,9 +56,9 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
                   {/* Tech Icon */}
                   <div className="relative">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/10 to-emerald-500/10 dark:from-blue-500/10 dark:to-teal-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      {tech.imageUrl ? (
+                      {tech.path ? (
                         <Image
-                          src={tech.imageUrl}
+                          src={tech.path}
                           alt={tech.name}
                           width={32}
                           height={32}
