@@ -39,7 +39,8 @@ const Footer = () => {
 
               <p className="text-gray-600 dark:text-gray-300 max-w-md leading-relaxed">
                 Passionate about creating exceptional digital experiences with
-                modern technologies. Let's build something amazing together.
+                modern technologies. Let&apos;s build something amazing
+                together.
               </p>
 
               {/* Social Links */}
