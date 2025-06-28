@@ -16,7 +16,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
   ) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const carouselRef = useRef<HTMLDivElement>(null);
-    const intervalRef = useRef<NodeJS.Timeout>();
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const slides = React.Children.toArray(children);
 

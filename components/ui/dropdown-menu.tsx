@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils";
 
 const DropdownMenu = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  {
+    trigger: React.ReactNode;
+    align?: "start" | "center" | "end";
+  } & React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, trigger, align = "start", ...props }, _ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
