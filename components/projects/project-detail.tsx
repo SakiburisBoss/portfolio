@@ -1,6 +1,5 @@
 "use client";
 
-import { Easing, motion, Variants } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,18 +46,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       );
       setIsDeleting(false);
     }
-  };
-
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut" as Easing, // Type assertion here
-      },
-    },
   };
 
   if (!project) {
@@ -114,7 +101,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       </div>
 
       {/* Project Details and Live Demo */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
+      <div className="animate-fade-in-up">
         <Card
           className="
           bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden
@@ -136,17 +123,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
               <div className="space-y-6">
                 {/* Featured Image */}
                 <div className="relative h-64 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <div className="hover:scale-105 transition-transform duration-300">
                     <Image
                       src={project.featuredImage}
                       alt={project.title}
                       fill
                       className="object-cover"
                     />
-                  </motion.div>
+                  </div>
                 </div>
 
                 {/* Project Info */}
@@ -205,14 +189,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Live Demo
                 </h2>
-                <motion.div
+                <div
                   className={cn(
                     "relative h-[500px] w-full overflow-hidden rounded-xl border",
                     "border-gray-300 bg-gray-100",
                     "dark:border-gray-700 dark:bg-gray-900/30"
                   )}
-                  whileHover={{ scale: 1.02, borderColor: "#3b82f6" }}
-                  transition={{ duration: 0.3 }}
                 >
                   {project.liveDemoUrl ? (
                     <iframe
@@ -238,7 +220,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       </p>
                     </div>
                   )}
-                </motion.div>
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
@@ -305,7 +287,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };

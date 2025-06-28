@@ -1,7 +1,5 @@
 "use client";
-import { Variants, Easing } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
 import { Prisma } from "@prisma/client";
 import React, { useActionState, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -10,13 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectOption } from "@/components/ui/select";
 import Image from "next/image";
 
 type Props = {
@@ -27,7 +19,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
   const projectId = project.id;
   const [selectedCategory, setSelectedCategory] = useState(project.category);
   const [liveDemoUrl, setLiveDemoUrl] = useState(project.liveDemoUrl || "");
-  const [codes,setCodes] = useState(project.codes || "");
+  const [codes, setCodes] = useState(project.codes || "");
 
   // Initialize useActionState with projectId bound to the action
   const [state, formAction, isPending] = useActionState<
@@ -54,20 +46,8 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
     setCodes(e.target.value);
   };
 
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut" as Easing, // Type assertion here
-      },
-    },
-  };
-
   return (
-    <motion.div variants={cardVariants} initial="hidden" animate="visible">
+    <div className="animate-fade-in-up">
       <Card
         className="
         bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden
@@ -149,31 +129,12 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   <Select
                     name="category"
                     value={selectedCategory}
-                    onValueChange={handleCategoryChange}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
                   >
-                    <SelectTrigger className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg border-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                      <SelectItem
-                        value="web"
-                        className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Web Development
-                      </SelectItem>
-                      <SelectItem
-                        value="mobile"
-                        className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Mobile App
-                      </SelectItem>
-                      <SelectItem
-                        value="ai"
-                        className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        AI
-                      </SelectItem>
-                    </SelectContent>
+                    <SelectOption value="web">Web Development</SelectOption>
+                    <SelectOption value="mobile">Mobile App</SelectOption>
+                    <SelectOption value="ai">AI</SelectOption>
                   </Select>
                 </div>
 
@@ -249,7 +210,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
 
                 {/* Github Code Link */}
 
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <Label
                     htmlFor="liveDemoUrl"
                     className="font-medium text-gray-700 dark:text-gray-300"
@@ -297,14 +258,12 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
               >
                 Live Preview
               </h2>
-              <motion.div
+              <div
                 className={cn(
                   "relative h-[500px] w-full overflow-hidden rounded-xl border",
                   "border-gray-300 bg-gray-100",
                   "dark:border-gray-700 dark:bg-gray-900/30"
                 )}
-                whileHover={{ scale: 1.02, borderColor: "#3b82f6" }}
-                transition={{ duration: 0.3 }}
               >
                 {liveDemoUrl ? (
                   <iframe
@@ -324,12 +283,12 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                     Enter a Live Demo URL to see the preview
                   </div>
                 )}
-              </motion.div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

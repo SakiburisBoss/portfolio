@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { motion } from "framer-motion";
 
 const ContactPage = () => {
   return (
@@ -23,12 +22,7 @@ const ContactPage = () => {
     >
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
             Let&apos;s Connect
           </h1>
@@ -36,15 +30,11 @@ const ContactPage = () => {
             Have a project in mind or want to discuss opportunities? Feel free
             to reach out - I&apos;m always open to new ideas and collaborations.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+          <div className="animate-fade-in-left">
             <Card className="border-0 shadow-lg rounded-xl bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -126,30 +116,25 @@ const ContactPage = () => {
                         url: "https://www.facebook.com/sakiburboss",
                       },
                     ].map((social, index) => (
-                      <motion.a
+                      <a
                         key={index}
                         href={social.url}
-                        target="_blank" // Opens link in new tab
+                        target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.label}
-                        whileHover={{ y: -5 }}
-                        className="p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full shadow-sm hover:shadow-md transition-all"
+                        className="p-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
                       >
                         {social.icon}
-                      </motion.a>
+                      </a>
                     ))}
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           {/* Contact Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
+          <div className="animate-fade-in-right">
             <Card className="border-0 shadow-lg rounded-xl bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -214,15 +199,15 @@ const ContactPage = () => {
                     </label>
                     <Textarea
                       id="message"
-                      placeholder="Your message here..."
-                      rows={5}
-                      className="py-4 px-4 rounded-xl border-gray-300 focus:border-violet-500 focus:ring-violet-500"
+                      placeholder="Tell me about your project..."
+                      rows={6}
+                      className="py-4 px-4 rounded-xl border-gray-300 focus:border-violet-500 focus:ring-violet-500 resize-none"
                     />
                   </div>
 
                   <Button
-                    size="lg"
-                    className="w-full py-6 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-lg font-medium"
+                    type="submit"
+                    className="w-full py-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
                   >
                     <Send className="w-5 h-5 mr-2" />
                     Send Message
@@ -230,7 +215,7 @@ const ContactPage = () => {
                 </form>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

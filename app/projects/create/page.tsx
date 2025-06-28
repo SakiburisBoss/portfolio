@@ -3,34 +3,14 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
-import { Variants, Easing } from "framer-motion";
-import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { createProject } from "@/actions/projects/create-project";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut" as Easing, // Type assertion here
-    },
-  },
-};
 
 type FormState = {
   success: boolean;
@@ -64,10 +44,6 @@ export default function CreateProjectPage() {
   const [liveDemoUrl, setLiveDemoUrl] = useState<string>("");
   const [codes, setCodes] = useState<string>("");
 
-
-
- 
-
   const [state, formAction, isPending] = useActionState(
     async (_prevState: FormState, formData: FormData): Promise<FormState> => {
       if (featuredImage) {
@@ -89,7 +65,7 @@ export default function CreateProjectPage() {
     },
     initialState
   );
- const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +100,7 @@ export default function CreateProjectPage() {
       </div>
 
       {/* Client Form */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
+      <div className="animate-fade-in-up">
         <Card
           className="
           bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden
@@ -204,31 +180,13 @@ export default function CreateProjectPage() {
                     <Select
                       name="category"
                       value={selectedCategory}
-                      onValueChange={handleCategoryChange}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
+                      className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
                     >
-                      <SelectTrigger className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-lg border-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <SelectItem
-                          value="web"
-                          className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Web Development
-                        </SelectItem>
-                        <SelectItem
-                          value="mobile"
-                          className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Mobile App
-                        </SelectItem>
-                        <SelectItem
-                          value="ai"
-                          className="py-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          AI
-                        </SelectItem>
-                      </SelectContent>
+                      <SelectOption value="">Select category</SelectOption>
+                      <SelectOption value="web">Web Development</SelectOption>
+                      <SelectOption value="mobile">Mobile App</SelectOption>
+                      <SelectOption value="ai">AI</SelectOption>
                     </Select>
                   </div>
 
@@ -338,14 +296,12 @@ export default function CreateProjectPage() {
                 >
                   Live Preview
                 </h2>
-                <motion.div
+                <div
                   className={cn(
                     "relative h-[500px] w-full overflow-hidden rounded-xl border",
                     "border-gray-300 bg-gray-100",
                     "dark:border-gray-700 dark:bg-gray-900/30"
                   )}
-                  whileHover={{ scale: 1.02, borderColor: "#3b82f6" }}
-                  transition={{ duration: 0.3 }}
                 >
                   {liveDemoUrl ? (
                     <iframe
@@ -365,12 +321,12 @@ export default function CreateProjectPage() {
                       Enter a Live Demo URL to see the preview
                     </div>
                   )}
-                </motion.div>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }
