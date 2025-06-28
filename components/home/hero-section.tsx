@@ -1,14 +1,13 @@
 "use client";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
+
 import Link from "next/link";
 import {
   Award,
   Briefcase,
   Code,
   Code2,
-  LayoutGrid,
   Mail,
   Rocket,
   Sparkles,
@@ -88,16 +87,16 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
 
           <div className="flex flex-col items-center gap-4 sm:flex-row md:justify-start">
             <Button asChild size="lg" variant="purple-glow" className="group">
-              <Link href="/projects">
+              <Link href="/projects" className="flex flex-row items-center">
                 <Zap className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                 View Projects
               </Link>
             </Button>
 
             <Button asChild variant="outline" size="lg" className="group">
-              <Link href="/#contact">
+              <Link href="/#contact" className="flex flex-row items-center">
                 <Mail className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
-                Get In Touch
+               Contact Me
               </Link>
             </Button>
           </div>

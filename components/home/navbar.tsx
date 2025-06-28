@@ -53,13 +53,10 @@ const NavBar = () => {
               <Button
                 variant="purple-glow"
                 size="sm"
-                className="flex items-center"
+                className="flex items-center h-11 px-4 text-center whitespace-normal leading-tight"
               >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">
-                  Join to add your projects
-                </span>
-                <span className="sm:hidden">Join</span>
+                <PlusCircle className="mr-2 h-5 w-5 flex-shrink-0" />
+                <span className="block">Join to add your project</span>
               </Button>
             </SignInButton>
           </SignedOut>
