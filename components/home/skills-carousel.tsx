@@ -62,7 +62,7 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
                           alt={tech.name}
                           width={32}
                           height={32}
-                          className="w-8 h-8 object-contain filter group-hover:brightness-110 transition-all duration-300"
+                          className="w-8 h-8 object-contain filter dark:brightness-0 dark:invert dark:contrast-200 group-hover:brightness-110 dark:group-hover:brightness-150 transition-all duration-300"
                           loading="lazy"
                         />
                       ) : (
@@ -86,18 +86,13 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
                         <div
                           key={i}
                           className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                            i < Math.min(tech.experienceLevel || 3, 5)
+                            i < 3
                               ? "bg-gradient-to-r from-purple-500 to-emerald-500 dark:from-blue-500 dark:to-teal-500"
                               : "bg-gray-200 dark:bg-gray-700"
                           }`}
                         />
                       ))}
                     </div>
-                  </div>
-
-                  {/* Category Badge */}
-                  <div className="px-3 py-1 rounded-full bg-purple-100/80 dark:bg-blue-900/50 text-xs font-medium text-purple-700 dark:text-blue-300 border border-purple-200/50 dark:border-blue-800/50">
-                    {tech.category}
                   </div>
                 </CardContent>
               </Card>
