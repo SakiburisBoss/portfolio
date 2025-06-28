@@ -1,21 +1,24 @@
 // components/UserSyncTrigger.tsx
 "use client";
 
-import { useEffect } from "react";
-import { useUser } from "@clerk/nextjs"; // Changed from useClerk
+import { useEffect, useRef } from "react";
+import { useUser } from "@clerk/nextjs";
 import { syncCurrentUser } from "@/actions/sync-current-user";
 
 export default function UserSyncTrigger() {
-  // Use useUser hook instead of useClerk
   const { isLoaded, user } = useUser();
+  const hasSynced = useRef(false);
 
   useEffect(() => {
-    if (isLoaded && user) {
-      // Add slight delay to avoid blocking initial render
+    if (isLoaded && user && !hasSynced.current) {
+      // Only sync once per session
+      hasSynced.current = true;
+
+      // Add delay to avoid blocking initial render
       const timer = setTimeout(() => {
         syncCurrentUser().catch(console.error);
-      }, 1000);
-      
+      }, 2000); // Increased delay for better performance
+
       return () => clearTimeout(timer);
     }
   }, [isLoaded, user]);

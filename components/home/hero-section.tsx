@@ -15,6 +15,9 @@ import {
 import { Techs } from "@prisma/client";
 
 const HeroSection = ({ techs }: { techs: Techs[] }) => {
+  // Limit techs to first 5 for better performance
+  const displayTechs = techs.slice(0, 5);
+
   return (
     <section
       className={cn(
@@ -25,6 +28,7 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
         "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
       )}
     >
+      {/* Simplified background effect */}
       <div className="absolute inset-0 before:absolute before:left-1/4 before:top-0 before:h-[500px] before:w-[500px] before:rounded-full before:blur-3xl dark:before:bg-gradient-to-r dark:before:from-violet-600/20 dark:before:to-indigo-600/20 light:before:bg-gradient-to-r light:before:from-blue-400/10 light:before:to-purple-400/10" />
 
       <div className="container relative mx-auto flex h-full flex-col items-center justify-center px-4 py-8 md:flex-row md:py-12">
@@ -56,7 +60,7 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
               "dark:text-white"
             )}
           >
-            Hi, I’m{" "}
+            Hi, I&apos;m{" "}
             <span
               role="text"
               aria-label="Sakibur Rahman"
@@ -80,18 +84,18 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
             )}
           >
             Building modern, scalable web applications using{" "}
-            {techs.map((tech, index) => (
+            {displayTechs.map((tech, index) => (
               <strong key={tech.id}>
                 {tech.name}
-                {index < techs.length - 2
+                {index < displayTechs.length - 2
                   ? ", "
-                  : index === techs.length - 2
+                  : index === displayTechs.length - 2
                   ? " and "
                   : ""}
               </strong>
             ))}
-            . Passionate about clean code, performance, and great user
-            experiences.
+            {displayTechs.length < techs.length && " and more"}. Passionate
+            about clean code, performance, and great user experiences.
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row md:justify-start">
@@ -191,6 +195,9 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
               fill
               className="object-cover"
               priority
+              sizes="(max-width: 768px) 256px, 256px"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
             <Code2 className="absolute bottom-2 right-2 w-6 h-6 text-cyan-400" />
           </div>
