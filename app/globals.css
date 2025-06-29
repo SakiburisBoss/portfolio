@@ -330,13 +330,12 @@
 
   @keyframes text-shimmer {
   0% {
-    background-position: -200% center;
+    background-position: 200% center; /* Start off-screen to the right */
   }
   100% {
-    background-position: 200% center;
+    background-position: -200% center; /* Move off-screen to the left */
   }
 }
-
 
   /* Animation Classes */
   .animate-fade-in-up {
