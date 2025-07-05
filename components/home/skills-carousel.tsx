@@ -9,8 +9,7 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
     <section
       className="
         py-8 md:py-12 relative overflow-hidden
-        bg-gradient-to-br from-purple-50 via-blue-50 to-emerald-50
-        dark:from-[#18122B] dark:via-[#22223B] dark:to-[#1A2A2A]
+       bg-gradient-to-br from-purple-50 via-white to-emerald-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900
       "
     >
       {/* Modern floating blurred shapes for extra depth */}
