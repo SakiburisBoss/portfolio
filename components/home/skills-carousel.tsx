@@ -7,7 +7,7 @@ import { Sparkles, Zap } from "lucide-react";
 
 const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
   // Limit to first 8 techs for better performance
-  const displayTechs = techs.slice(0, 8);
+  const displayTechs = techs;
 
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
