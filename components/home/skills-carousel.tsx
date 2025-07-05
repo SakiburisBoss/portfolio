@@ -38,7 +38,8 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
         {/* Skills Grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 md:gap-6">
           {techs.map((tech) => (
-            <div key={tech.id} className="flex flex-col items-center justify-center">
+            <div key={tech.id}  className="flex flex-col items-center justify-center animate-bounce"
+    style={{ animationDelay: `${idx * 0.15}s` }}>
               <div className="dark:bg-white mb-2 transition-all duration-300 group hover:scale-110">
                 <div className="relative flex items-center justify-center w-12 h-12">
                   {tech.path ? (
