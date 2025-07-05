@@ -28,19 +28,23 @@ const SkillsCarousel: React.FC<{ techs: Techs[] }> = ({ techs }) => {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 md:gap-6">
           {techs.map((tech) => (
             <div key={tech.id} className="flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/10 to-emerald-500/10 dark:from-blue-500/10 dark:to-teal-500/10 flex items-center justify-center mb-2">
-                {tech.path ? (
-                  <Image
-                    src={tech.path}
-                    alt={tech.name}
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <Sparkles className="w-7 h-7 text-purple-600 dark:text-blue-400" />
-                )}
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center mb-2 transition-all duration-300 shadow-sm hover:shadow-xl hover:scale-110 relative group">
+                {/* Glow effect on hover */}
+                <div className="absolute -inset-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0 bg-gradient-to-r from-purple-400/20 via-blue-400/20 to-emerald-400/20 blur-md"></div>
+                <div className="relative z-10 flex items-center justify-center w-full h-full">
+                  {tech.path ? (
+                    <Image
+                      src={tech.path}
+                      alt={tech.name}
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Sparkles className="w-7 h-7 text-purple-600 dark:text-blue-400" />
+                  )}
+                </div>
               </div>
               <span className="text-xs font-medium text-gray-800 dark:text-gray-200 text-center">
                 {tech.name}
