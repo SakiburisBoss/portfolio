@@ -16,8 +16,6 @@ import {
 import { Techs } from "@prisma/client";
 
 const HeroSection = ({ techs }: { techs: Techs[] }) => {
-  // Limit techs to first 5 for better performance
-  const displayTechs = techs.slice(0, 5);
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-purple-50 via-white to-emerald-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900">
@@ -67,23 +65,22 @@ const HeroSection = ({ techs }: { techs: Techs[] }) => {
           </h1>
 
           <p className="max-w-2xl text-lg md:text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
-            Building modern, scalable web applications using{" "}
-            {displayTechs.map((tech, index) => (
-              <strong
-                key={tech.id}
-                className="text-purple-600 dark:text-blue-400 hover:text-purple-700 dark:hover:text-blue-300 transition-colors duration-300"
-              >
-                {tech.name}
-                {index < displayTechs.length - 2
-                  ? ", "
-                  : index === displayTechs.length - 2
-                  ? " and "
-                  : ""}
-              </strong>
-            ))}
-            {displayTechs.length < techs.length && " and more"}. Passionate
-            about clean code, performance, and great user experiences.
-          </p>
+  Building modern, scalable web applications using{" "}
+  {techs.map((tech, index) => (
+    <strong
+      key={tech.id}
+      className="text-purple-600 dark:text-blue-400 hover:text-purple-700 dark:hover:text-blue-300 transition-colors duration-300"
+    >
+      {tech.name}
+      {index < techs.length - 2
+        ? ", "
+        : index === techs.length - 2
+        ? " and "
+        : ""}
+    </strong>
+  ))}
+  . Passionate about clean code, performance, and great user experiences.
+            </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row md:justify-start">
             <Button asChild size="lg" variant="purple-glow" className="group">
