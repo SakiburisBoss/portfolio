@@ -89,7 +89,7 @@ export async function editProject(
         message: "Project not found.",
       };
     }
-    if (project.author.clerkUserId !== userId) {
+    if (project.author.id !== userId) {
       redirect("/unauthorized");
     }
 

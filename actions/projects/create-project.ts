@@ -82,7 +82,7 @@ export async function createProject(
 
     // Find or create user
     let user = await prisma.user.findUnique({
-      where: { clerkUserId: userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -98,7 +98,7 @@ export async function createProject(
 
       user = await prisma.user.create({
         data: {
-          clerkUserId: userId,
+          id: userId,
           email: email,
           name: [clerkUser.firstName, clerkUser.lastName]
             .filter(Boolean)

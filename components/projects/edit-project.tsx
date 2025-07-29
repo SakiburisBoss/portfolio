@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Select, SelectOption } from "@/components/ui/select";
+
 import Image from "next/image";
 
 type Props = {
@@ -126,16 +126,28 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   <Label className="font-medium text-gray-700 dark:text-gray-300">
                     Category
                   </Label>
-                  <Select
-                    name="category"
-                    value={selectedCategory}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="py-5 px-4 rounded-xl border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
-                  >
-                    <SelectOption value="web">Web Development</SelectOption>
-                    <SelectOption value="mobile">Mobile App</SelectOption>
-                    <SelectOption value="ai">AI</SelectOption>
-                  </Select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="category"
+                      list="category-options"
+                      value={selectedCategory}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
+                      placeholder="Select or type a category"
+                      className="w-full py-3 px-4 rounded-xl border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500"
+                      required
+                    />
+                    <datalist id="category-options">
+                      <option value="Web Development">Web Development</option>
+                      <option value="Mobile App">Mobile App</option>
+                      <option value="AI">AI</option>
+                      <option value="Design">Design</option>
+                      <option value="Game Development">Game Development</option>
+                      <option value="Data Science">Data Science</option>
+                      <option value="Machine Learning">Machine Learning</option>
+                      <option value="Blockchain">Blockchain</option>
+                    </datalist>
+                  </div>
                 </div>
 
                 {/* Description */}

@@ -21,7 +21,7 @@ export const deleteProject = async (projectId: string) => {
       include: {
         author: {
           select: {
-            clerkUserId: true
+            id: true
           }
         }
       }
@@ -31,8 +31,8 @@ export const deleteProject = async (projectId: string) => {
       throw new Error("Project not found");
     }
 
-    // Verify ownership using clerkUserId
-    if (!project.author || project.author.clerkUserId !== userId) {
+    // Verify ownership using id
+    if (!project.author || project.author.id !== userId) {
       redirect("/unauthorized");
     }
 

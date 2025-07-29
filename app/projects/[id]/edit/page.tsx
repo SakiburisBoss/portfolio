@@ -15,7 +15,8 @@ const page: React.FC<EditPageProps> = async ({ params }) => {
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    const currentPath = `/projects/${(await params).id}/edit`;
+    redirect(`/sign-in?redirect_url=${encodeURIComponent(currentPath)}`);
   }
 
   const { id } = await params;
@@ -30,7 +31,7 @@ const page: React.FC<EditPageProps> = async ({ params }) => {
   if (!project) {
     return notFound();
   }
-  if (project.author.clerkUserId !== userId) {
+  if (project.author.id !== userId) {
     redirect("/unauthorized");
   }
 

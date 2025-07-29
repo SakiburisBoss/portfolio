@@ -35,10 +35,6 @@ export default function Filters({
     router.push(pathname + "?" + createQueryString("search", e.target.value));
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    router.push(pathname + "?" + createQueryString("category", e.target.value));
-  };
-
   return (
     <div className="flex gap-4 w-full">
       {/* Search Input */}
@@ -53,18 +49,28 @@ export default function Filters({
       </div>
 
       {/* Category Filter */}
-      <div className="w-48">
-        <select
-          defaultValue={initialCategory}
-          onChange={handleCategoryChange}
-          className="border p-2 w-full rounded-lg dark:bg-gray-800 dark:border-gray-700"
-        >
-          <option value="">All Categories</option>
-          <option value="design">Design</option>
-          <option value="development">Development</option>
-          <option value="marketing">Marketing</option>
-          <option value="ai">AI</option>
-        </select>
+      <div className="w-64">
+        <div className="relative">
+          <input
+            type="text"
+            list="category-options"
+            defaultValue={initialCategory}
+            onChange={(e) => router.push(pathname + "?" + createQueryString("category", e.target.value))}
+            placeholder="Filter by category..."
+            className="border p-2 w-full rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          />
+          <datalist id="category-options">
+            <option value="">All Categories</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Mobile App">Mobile App</option>
+            <option value="AI">AI</option>
+            <option value="Design">Design</option>
+            <option value="Game Development">Game Development</option>
+            <option value="Data Science">Data Science</option>
+            <option value="Machine Learning">Machine Learning</option>
+            <option value="Blockchain">Blockchain</option>
+          </datalist>
+        </div>
       </div>
     </div>
   );

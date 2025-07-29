@@ -27,7 +27,7 @@ const page: React.FC<ProjectDetailPageProps> = async ({ params }) => {
 
   const {userId} = await auth()
 
-  const isProjectOwner = project.author.clerkUserId === userId
+  const isProjectOwner = project.author.id === userId
 
   return <ProjectDetailPage project={project} isProjectOwner={isProjectOwner} />;
 };
