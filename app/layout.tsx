@@ -43,7 +43,6 @@ export const metadata: Metadata = {
       "A modern web developer's portfolio showcasing projects built with Next.js, TypeScript, React, and more.",
     siteName: "Sakibur's Portfolio",
   },
-  },
 };
 
 export default function RootLayout({
