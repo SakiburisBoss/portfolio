@@ -6,7 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import UserSyncTrigger from "@/components/user-sync";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://your-domain.vercel.app"), // Replace with your actual domain
+  metadataBase: new URL("https://portfolio-pi-indol-81.vercel.app"), // Replace with your actual domain
   icons: {
     icon: [
       {
@@ -37,31 +37,12 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://your-domain.vercel.app", // Replace with your actual domain
+    url: "https://portfolio-pi-indol-81.vercel.app/", // Replace with your actual domain
     title: "Sakibur's Portfolio",
     description:
       "A modern web developer's portfolio showcasing projects built with Next.js, TypeScript, React, and more.",
     siteName: "Sakibur's Portfolio",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Sakibur's Portfolio",
-    description:
-      "A modern web developer's portfolio showcasing projects built with Next.js, TypeScript, React, and more.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  verification: {
-    google: "your-google-verification-code", // Add your Google verification code
   },
 };
 
@@ -73,7 +54,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className="container">
+        <body className="container mx-auto">
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
