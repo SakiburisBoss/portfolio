@@ -1,16 +1,24 @@
-// components/filters.tsx
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
+
+type FiltersProps = {
+  initialSearch: string;
+  initialCategory: string;
+  categories: string[];
+};
+
 export default function Filters({
   initialSearch = "",
-  initialCategory = ""
-}) {
+  initialCategory = "",
+  categories = []
+}: FiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
 
   // Create query string with updated parameters
   const createQueryString = useCallback(
@@ -61,14 +69,9 @@ export default function Filters({
           />
           <datalist id="category-options">
             <option value="">All Categories</option>
-            <option value="Web Development">Web Development</option>
-            <option value="Mobile App">Mobile App</option>
-            <option value="AI">AI</option>
-            <option value="Design">Design</option>
-            <option value="Game Development">Game Development</option>
-            <option value="Data Science">Data Science</option>
-            <option value="Machine Learning">Machine Learning</option>
-            <option value="Blockchain">Blockchain</option>
+            {categories.map((category) => (
+              <option key={category} value={category} />
+            ))}
           </datalist>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import {currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -72,41 +72,15 @@ export async function createProject(
 ): Promise<ActionResponse> {
   try {
     // Authentication check
-    const { userId } =await auth();
-    if (!userId) {
+    const user =await currentUser();
+    if (!user) {
       return {
         success: false,
         message: "Unauthorized. Please log in to create a project.",
       };
     }
 
-    // Find or create user
-    let user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      const clerkUser = await (await clerkClient()).users.getUser(userId);
-      const email = clerkUser.emailAddresses[0]?.emailAddress;
-      
-      if (!email) {
-        return {
-          success: false,
-          message: "No email associated with your account.",
-        };
-      }
-
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          email: email,
-          name: [clerkUser.firstName, clerkUser.lastName]
-            .filter(Boolean)
-            .join(" ") || "Unknown",
-          imageUrl: clerkUser.imageUrl || null,
-        },
-      });
-    }
+   
 
     // Process file upload
     const file = formData.get("featuredImage") as File | null;
@@ -172,7 +146,7 @@ export async function createProject(
       },
     });
 
-    revalidatePath("/projects");
+   
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -203,6 +177,6 @@ export async function createProject(
       message: "An unexpected error occurred. Please try again.",
     };
   }
-  
+  revalidatePath("/projects");
   redirect("/projects");
 }

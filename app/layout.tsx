@@ -3,7 +3,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import NavBar from "@/components/home/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
-import UserSyncTrigger from "@/components/user-sync";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://portfolio-pi-indol-81.vercel.app"), // Replace with your actual domain
@@ -62,7 +61,6 @@ export default function RootLayout({
           >
             <NavBar />
             {children}
-            <UserSyncTrigger />
           </ThemeProvider>
         </body>
       </html>

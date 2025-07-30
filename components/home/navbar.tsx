@@ -49,7 +49,7 @@ const NavBar = () => {
           <ModeToggle />
 
           <SignedOut>
-            <SignInButton mode="modal">
+            <SignInButton  mode="modal">
               <Button
                 variant="purple-glow"
                 size="sm"

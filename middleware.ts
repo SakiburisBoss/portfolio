@@ -1,9 +1,9 @@
-import { clerkClient, clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, currentUser } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 const ADMIN_EMAIL = "iamsakibur@gmail.com";
 
-export default clerkMiddleware(async (auth, req:NextRequest) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
   // Skip middleware for static files
@@ -18,13 +18,10 @@ export default clerkMiddleware(async (auth, req:NextRequest) => {
   try {
     // Handle /me routes - Admin only
     if (pathname.startsWith("/me")) {
-      const { userId } = await auth();
-
-      if (!userId) {
+      const user = await currentUser();
+      if (!user) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
       }
-
-      const user = await (await clerkClient()).users.getUser(userId);
       const isAdmin = user.emailAddresses.some(
         (e) => e.emailAddress === ADMIN_EMAIL
       );
@@ -35,7 +32,6 @@ export default clerkMiddleware(async (auth, req:NextRequest) => {
 
       return NextResponse.next();
     }
-
 
     return NextResponse.next();
   } catch (error) {
