@@ -206,9 +206,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     <Label className="font-medium text-gray-700 dark:text-gray-300">
                       Description
                     </Label>
-                    <div className="px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white min-h-[120px]">
+                    <p className="px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white min-h-[120px] whitespace-pre-line">
                       {project.description}
-                    </div>
+                    </p>
                   </div>
                 </div>
 
