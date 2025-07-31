@@ -33,29 +33,27 @@ const NavBar = () => {
             </span>
           </div>
         </Link>
-
+        <Button
+          asChild
+          variant="outline"
+          className="mx-2 flex items-center border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950/50"
+        >
+          <Link href="/projects" className="flex items-center">
+            <LayoutGrid className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            View Projects
+          </Link>
+        </Button>
         <div className="flex items-center space-x-4 sm:space-x-6">
-          <Button
-            asChild
-            variant="outline"
-            className="hidden sm:flex items-center border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950/50"
-          >
-            <Link href="/projects" className="flex items-center">
-              <LayoutGrid className="mr-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              View Projects
-            </Link>
-          </Button>
-
           <ModeToggle />
 
           <SignedOut>
-            <SignInButton  mode="modal">
+            <SignInButton mode="modal">
               <Button
                 variant="purple-glow"
                 size="sm"
-                className="flex items-center h-11 px-4 text-center whitespace-normal leading-tight"
+                className="cursor-pointer flex items-center h-11 px-4 text-center whitespace-normal leading-tight"
               >
-                <PlusCircle className="mr-2 h-5 w-5 flex-shrink-0" />
+                <PlusCircle className="mr-2 h-5 w-5 flex-shrink-0 hidden sm:block" />
                 <span className="block">Join to add your project</span>
               </Button>
             </SignInButton>
