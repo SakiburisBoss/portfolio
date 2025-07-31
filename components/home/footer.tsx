@@ -123,7 +123,7 @@ const Footer = () => {
                     <Mail className="w-4 h-4 text-purple-600 dark:text-blue-400" />
                   </div>
                   <span className="text-gray-600 dark:text-gray-300 text-sm">
-                    contact@example.com
+                    iamsakibur@gmail.com
                   </span>
                 </div>
 
