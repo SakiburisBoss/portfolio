@@ -83,7 +83,7 @@ export default function CreateProjectPage() {
   };
 
   return (
-    <div className="relative container mx-auto px-4 py-8 sm:py-12 min-h-screen bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
+    <div className="relative px-4 py-8 sm:py-12 min-h-screen bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 before:absolute before:left-1/4 before:top-0 before:h-[800px] before:w-[800px] before:rounded-full before:blur-3xl dark:before:bg-gradient-to-r dark:before:from-violet-600/20 dark:before:to-indigo-600/20 before:bg-gradient-to-r before:from-blue-400/10 before:to-purple-400/10 z-[-1]" />
 
@@ -282,7 +282,7 @@ export default function CreateProjectPage() {
                     type="submit"
                     disabled={isPending}
                     className={cn(
-                      "px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg",
+                      "w-full cursor-pointer px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg",
                       "dark:bg-gradient-to-r dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700",
                       isPending && "opacity-50 cursor-not-allowed"
                     )}

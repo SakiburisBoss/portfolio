@@ -52,7 +52,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     return (
       <div
         className={cn(
-          "relative container mx-auto px-4 py-8 sm:py-12 min-h-screen",
+          "relative px-4 py-8 sm:py-12 min-h-screen",
           "bg-white text-gray-900",
           "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
         )}
@@ -74,7 +74,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   return (
     <div
       className={cn(
-        "relative container mx-auto px-4 py-8 sm:py-12 min-h-screen",
+        "relative px-4 py-8 sm:py-12 min-h-screen",
         "bg-white text-gray-900",
         "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
       )}
@@ -83,15 +83,20 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       <div className="absolute inset-0 before:absolute before:left-1/4 before:top-0 before:h-[800px] before:w-[800px] before:rounded-full before:blur-3xl dark:before:bg-gradient-to-r dark:before:from-violet-600/20 dark:before:to-indigo-600/20 before:bg-gradient-to-r before:from-blue-400/10 before:to-purple-400/10 z-[-1]" />
 
       {/* Header Section */}
-      <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
-        <h1
-          className={cn(
-            "text-3xl sm:text-4xl font-extrabold tracking-tight",
-            "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 bg-clip-text text-transparent"
-          )}
-        >
-          {project.title}
-        </h1>
+      <div className="relative w-full mb-12 flex justify-between">
+        <div className="relative inline-block">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white relative z-10">
+            <span className="relative inline-block">
+              Project Details
+              <span
+                className="absolute bottom-1 left-0 w-full h-2 bg-blue-100 dark:bg-blue-900/50 -z-10 opacity-70"
+                style={{ transform: "skewX(-12deg)" }}
+              ></span>
+            </span>
+          </h2>
+          <div className="absolute -bottom-2 left-0 w-24 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+        </div>
+
         <Button
           asChild
           className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
@@ -122,22 +127,72 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
               {/* Project Details */}
               <div className="space-y-6">
                 {/* Featured Image */}
-                <div className="relative h-64 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                  <div className="hover:scale-105 transition-transform duration-300">
-                    <Image
-                      src={project.featuredImage}
-                      alt={project.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                <div className="relative w-full aspect-video max-h-[500px] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                  <Image
+                    src={project.featuredImage}
+                    alt={project.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-contain hover:scale-105 transition-all duration-300"
+                    priority
+                  />
                 </div>
 
                 {/* Project Info */}
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Project Details
-                  </h2>
+                <div className="space-y-6">
+                  <div className="flex justify-between"> <h1
+                    className={cn(
+                      "text-3xl sm:text-4xl font-extrabold tracking-tight",
+                      "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 bg-clip-text text-transparent"
+                    )}
+                  >
+                    {project.title}
+                  </h1>
+                  <Button
+                    variant="outline"
+                    disabled={!project.liveDemoUrl}
+                    className={`cursor-pointer py-5 rounded-xl font-medium text-base transition-all duration-300 group ${
+                      project.liveDemoUrl
+                        ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md hover:-translate-y-0.5"
+                        : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                    }`}
+                    onClick={() =>
+                      project.liveDemoUrl &&
+                      window.open(
+                        project.liveDemoUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
+                    }
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`${
+                          project.liveDemoUrl
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" x2="21" y1="14" y2="3" />
+                      </svg>
+                      Visit {project.title}
+                    </span>
+                  </Button>
+                  </div>
+                 
+                  
+
                   <div className="space-y-2">
                     <Label className="font-medium text-gray-700 dark:text-gray-300">
                       Category
@@ -186,9 +241,93 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 
               {/* Live Demo Preview */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Live Demo
-                </h2>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-blue-600 dark:text-blue-400"
+                      >
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <line x1="2" x2="22" y1="10" y2="10" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
+                      Live Preview
+                    </h2>
+                  </div>
+
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 flex items-center gap-1.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-yellow-500"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" x2="12" y1="8" y2="12" />
+                      <line x1="12" x2="12.01" y1="16" y2="16" />
+                    </svg>
+                    Preview not working? Try opening in a new tab
+                  </p>
+
+                  <Button
+                    variant="outline"
+                    disabled={!project.liveDemoUrl}
+                    className={`cursor-pointer w-full py-5 rounded-xl font-medium text-base transition-all duration-300 group ${
+                      project.liveDemoUrl
+                        ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md hover:-translate-y-0.5"
+                        : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                    }`}
+                    onClick={() =>
+                      project.liveDemoUrl &&
+                      window.open(
+                        project.liveDemoUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
+                    }
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`${
+                          project.liveDemoUrl
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" x2="21" y1="14" y2="3" />
+                      </svg>
+                      Visit {project.title}
+                    </span>
+                  </Button>
+                </div>
+
                 <div
                   className={cn(
                     "relative h-[500px] w-full overflow-hidden rounded-xl border",

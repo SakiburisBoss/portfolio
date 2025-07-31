@@ -245,7 +245,7 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
                   type="submit"
                   disabled={isPending}
                   className={cn(
-                    "px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg",
+                    "cursor-pointer w-full px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 font-medium shadow-md hover:shadow-lg",
                     "dark:bg-gradient-to-r dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700",
                     isPending && "opacity-50 cursor-not-allowed"
                   )}

@@ -27,7 +27,7 @@ const ProjectsPage: React.FC<SearchPageProps> =async({searchParams}) => {
   return (
     <div
       className={cn(
-        "relative container mx-auto px-4 py-8 sm:py-12 min-h-screen",
+        "relative px-4 py-8 sm:py-12 min-h-screen",
         "bg-white text-gray-900",
         "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
       )}

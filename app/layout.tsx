@@ -52,7 +52,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className="w-full px-4 md:px-8 lg:px-16">
+        <body>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
