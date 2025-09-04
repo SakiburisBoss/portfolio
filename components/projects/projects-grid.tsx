@@ -28,7 +28,7 @@ const ProjectGrid: React.FC<ProjectsPageProps> = ({ projects }) => {
   };
 
   return (
-    <div className="relative grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="relative grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-3 ">
       {projects?.length > 0
         ? projects.map((project, index) => (
             <div
@@ -74,13 +74,13 @@ const ProjectGrid: React.FC<ProjectsPageProps> = ({ projects }) => {
                       <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                         <div className="flex gap-2">
                           {project.liveDemoUrl && (
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                              <ExternalLink className="w-4 h-4 text-white" />
+                            <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors">
+                              <ExternalLink className="w-4 h-4 text-white mix-blend-difference" />
                             </div>
                           )}
                           {project.codes && (
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                              <Github className="w-4 h-4 text-white" />
+                            <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors">
+                              <Github className="w-4 h-4 text-white mix-blend-difference" />
                             </div>
                           )}
                         </div>
