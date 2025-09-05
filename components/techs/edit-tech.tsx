@@ -56,6 +56,7 @@ const EditTechPage = ({ tech }: { tech: Techs }) => {
                 Image URL
               </label>
               <Input
+                type='file'
                 id="path"
                 name="path"
                 defaultValue={tech.path}
