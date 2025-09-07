@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
 import { deleteProject } from "@/actions/projects/delete-project";
-import { Loader2, Trash2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react"; // Added useRef and useEffect
+import { Loader2, Trash2, ExternalLink, Code, AlertCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{
@@ -27,7 +27,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null); // Added ref for iframe
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handleDelete = async () => {
     if (
@@ -49,21 +51,44 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     }
   };
 
-  // Added useEffect to log iframe loading (for debugging)
+  // Handle iframe loading states
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (iframe) {
-      const handleLoad = () => {
-        console.log("Iframe loaded successfully");
-      };
-      
-      iframe.addEventListener('load', handleLoad);
-      
-      return () => {
-        iframe.removeEventListener('load', handleLoad);
-      };
-    }
-  }, []);
+    if (!iframe || !project.liveDemoUrl) return;
+
+    const handleLoad = () => {
+      setIframeLoading(false);
+      setIframeError(null);
+    };
+
+    const handleError = () => {
+      setIframeLoading(false);
+      setIframeError("Failed to load the preview. The website may prevent embedding.");
+    };
+
+    iframe.addEventListener('load', handleLoad);
+    iframe.addEventListener('error', handleError);
+
+    // Set a timeout to handle cases where iframe doesn't load
+    const timeoutId = setTimeout(() => {
+      if (iframeLoading) {
+        setIframeLoading(false);
+        setIframeError("Preview is taking too long to load. The website may prevent embedding.");
+      }
+    }, 10000);
+
+    return () => {
+      iframe.removeEventListener('load', handleLoad);
+      iframe.removeEventListener('error', handleError);
+      clearTimeout(timeoutId);
+    };
+  }, [project.liveDemoUrl, iframeLoading]);
+
+  // Reset iframe state when URL changes
+  useEffect(() => {
+    setIframeLoading(true);
+    setIframeError(null);
+  }, [project.liveDemoUrl]);
 
   if (!project) {
     return (
@@ -184,33 +209,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       }  
                     >  
                       <span className="flex items-center gap-2">  
-                        <svg  
-                          xmlns="http://www.w3.org/2000/svg"  
-                          width="20"  
-                          height="20"  
-                          viewBox="0 0 24 24"  
-                          fill="none"  
-                          stroke="currentColor"  
-                          strokeWidth="2"  
-                          strokeLinecap="round"  
-                          strokeLinejoin="round"  
-                          className={`${  
-                            project.liveDemoUrl  
-                              ? "text-blue-600 dark:text-blue-400"  
-                              : "text-gray-400"  
-                          }`}  
-                        >  
-                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />  
-                          <polyline points="15 3 21 3 21 9" />  
-                          <line x1="10" x2="21" y1="14" y2="3" />  
-                        </svg>  
+                        <ExternalLink size={20} className={project.liveDemoUrl ? "text-blue-600 dark:text-blue-400" : "text-gray-400"} />
                         Visit {project.title}  
                       </span>  
                     </Button>  
                   </div>  
                 
-                  
-
                   <div className="space-y-2">  
                     <Label className="font-medium text-gray-700 dark:text-gray-300">  
                       Category  
@@ -284,22 +288,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   </div>  
 
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 flex items-center gap-1.5">  
-                    <svg  
-                      xmlns="http://www.w3.org/2000/svg"  
-                      width="16"  
-                      height="16"  
-                      viewBox="0 0 24 24"  
-                      fill="none"  
-                      stroke="currentColor"  
-                      strokeWidth="2"  
-                      strokeLinecap="round"  
-                      strokeLinejoin="round"  
-                      className="text-yellow-500"  
-                    >  
-                      <circle cx="12" cy="12" r="10" />  
-                      <line x1="12" x2="12" y1="8" y2="12" />  
-                      <line x1="12" x2="12.01" y1="16" y2="16" />  
-                    </svg>  
+                    <AlertCircle size={16} className="text-yellow-500" />
                     Preview not working? Try opening in a new tab  
                   </p>  
 
@@ -321,26 +310,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     }  
                   >  
                     <span className="flex items-center gap-2">  
-                      <svg  
-                        xmlns="http://www.w3.org/2000/svg"  
-                        width="20"  
-                        height="20"  
-                        viewBox="0 0 24 24"  
-                        fill="none"  
-                        stroke="currentColor"  
-                        strokeWidth="2"  
-                        strokeLinecap="round"  
-                        strokeLinejoin="round"  
-                        className={`${  
-                          project.liveDemoUrl  
-                            ? "text-blue-600 dark:text-blue-400"  
-                            : "text-gray-400"  
-                        }`}  
-                      >  
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />  
-                        <polyline points="15 3 21 3 21 9" />  
-                        <line x1="10" x2="21" y1="14" y2="3" />  
-                      </svg>  
+                      <ExternalLink size={20} className={project.liveDemoUrl ? "text-blue-600 dark:text-blue-400" : "text-gray-400"} />
                       Visit {project.title}  
                     </span>  
                   </Button>  
@@ -353,16 +323,47 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     "dark:border-gray-700 dark:bg-gray-900/30"  
                   )}  
                 >  
-                  {project.liveDemoUrl ? (  
-                    <iframe
-                      ref={iframeRef} // Added ref to iframe
-                      key={project.liveDemoUrl} // Added key to prevent re-mounts
-                      src={project.liveDemoUrl}  
-                      title="Live Demo Preview"  
-                      className="w-full h-full"  
-                      sandbox="allow-scripts allow-same-origin"
-                      onLoad={() => console.log("Iframe loaded")} // Added load handler
-                    />  
+                  {project.liveDemoUrl ? (
+                    <>
+                      {iframeLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
+                          <div className="text-center">
+                            <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
+                            <p className="mt-2 text-gray-600 dark:text-gray-300">Loading preview...</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <iframe
+                        ref={iframeRef}
+                        key={project.liveDemoUrl}
+                        src={project.liveDemoUrl}  
+                        title="Live Demo Preview"  
+                        className="w-full h-full"  
+                        sandbox="allow-scripts allow-same-origin"
+                        onLoad={() => setIframeLoading(false)}
+                        style={{ display: iframeLoading ? 'none' : 'block' }}
+                      />
+                      
+                      {iframeError && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900 p-4 text-center">
+                          <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                            Preview Unavailable
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-300 mb-4">
+                            {iframeError}
+                          </p>
+                          <Button
+                            onClick={() => window.open(project.liveDemoUrl!, "_blank")}
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink size={16} />
+                            Open in New Tab
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (  
                     <div  
                       className={cn(  
@@ -412,6 +413,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       )  
                     }  
                   >  
+                    <Code size={18} className="mr-2" />
                     View Code  
                   </Button>  
                   {isProjectOwner && (  
@@ -423,4 +425,33 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700",  
                         "disabled:opacity-70 disabled:cursor-not-allowed"  
                       )}  
-                 
+                    >  
+                      {isDeleting ? (  
+                        <span className="flex items-center justify-center">  
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />  
+                          Deleting...  
+                        </span>  
+                      ) : (  
+                        <span className="flex items-center justify-center">  
+                          <Trash2 className="mr-2 h-4 w-4" />  
+                          Delete  
+                        </span>  
+                      )}  
+                    </Button>  
+                  )}  
+                </div>  
+                {deleteError && (  
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">  
+                    {deleteError}  
+                  </div>  
+                )}  
+              </div>  
+            </div>  
+          </CardContent>  
+        </Card>  
+      </div>  
+    </div>
+  );
+};
+
+export default ProjectDetailPage;
