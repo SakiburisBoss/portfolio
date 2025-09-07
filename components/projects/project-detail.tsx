@@ -445,7 +445,7 @@ function StartTimer({ onStart }: { onStart: () => void }) {
 type IframePreviewProps = {
   url: string
 }
-                          .toUpperCase()}
+                    
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
