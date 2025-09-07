@@ -442,7 +442,9 @@ function StartTimer({ onStart }: { onStart: () => void }) {
   return null;
 }
 
-type IframePreviewProps oin("")
+type IframePreviewProps = {
+  url: string
+}
                           .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
