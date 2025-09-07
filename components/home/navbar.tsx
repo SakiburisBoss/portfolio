@@ -15,7 +15,7 @@ const NavBar = () => {
             <div className="w-11 h-11 rounded-full bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border-2 border-transparent bg-clip-padding flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
               <div className="absolute inset-0 rounded-full border-2 border-transparent bg-gradient-to-br from-purple-500 via-emerald-400 to-purple-600 group-hover:opacity-80 opacity-60 z-0"></div>
               <Image
-                src="/favicon.svg"
+                src="/android-chrome-512x512.png"
                 alt="Sakibur's Logo"
                 width={44}
                 height={44}
