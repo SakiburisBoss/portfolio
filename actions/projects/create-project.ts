@@ -3,7 +3,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import {currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -72,15 +72,13 @@ export async function createProject(
 ): Promise<ActionResponse> {
   try {
     // Authentication check
-    const user =await currentUser();
+    const user = await currentUser();
     if (!user) {
       return {
         success: false,
         message: "Unauthorized. Please log in to create a project.",
       };
     }
-
-   
 
     // Process file upload
     const file = formData.get("featuredImage") as File | null;
@@ -146,7 +144,16 @@ export async function createProject(
       },
     });
 
-   
+    // Revalidate and redirect inside try block
+    revalidatePath("/projects");
+    redirect("/projects");
+
+    // This return won't execute due to redirect above, but good for type safety
+    return {
+      success: true,
+      message: "Project created successfully",
+    };
+
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -171,12 +178,27 @@ export async function createProject(
       };
     }
 
+    // Handle database errors (Prisma)
+    if (error instanceof Error) {
+      if (error.message.includes('Unique constraint')) {
+        return {
+          success: false,
+          message: "A project with this title already exists.",
+        };
+      }
+      
+      if (error.message.includes('Foreign key constraint')) {
+        return {
+          success: false,
+          message: "Invalid user reference. Please log in again.",
+        };
+      }
+    }
+
     console.error("Error creating project:", error);
     return {
       success: false,
       message: "An unexpected error occurred. Please try again.",
     };
   }
-  revalidatePath("/projects");
-  redirect("/projects");
 }
