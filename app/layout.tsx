@@ -71,7 +71,7 @@ export default function RootLayout({
             content="Sakibur's Portfolio"
           />
         </head>
-        <body>
+        <body className="w-screen">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
