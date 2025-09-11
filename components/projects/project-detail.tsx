@@ -312,7 +312,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                           <span className="hidden sm:inline">
                             Visit {project.title}
                           </span>
-                          <span className="sm:hidden">Visit Site</span>
+                          <span className="sm:hidden">Visit {project.title}</span>
                         </span>
                       </Button>
                     </div>
@@ -456,7 +456,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                                   "noopener,noreferrer"
                                 )
                               }
-                              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                              className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                             >
                               <ExternalLink className="h-4 w-4 mr-2" />
                               Open in New Tab
@@ -464,7 +464,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                             <Button
                               variant="outline"
                               onClick={resetIframe}
-                              className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                              className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                             >
                               Try Again
                             </Button>
