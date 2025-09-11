@@ -24,17 +24,10 @@ const ProjectsPage: React.FC<SearchPageProps> = async ({ searchParams }) => {
 
   return (
     <div
-      className={cn(
-        "relative px-4 py-8 sm:py-12 min-h-screen w-full overflow-x-hidden max-w-full",
-        "bg-white text-gray-900",
-        "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
-      )}
-    >
-      {/* Gradient Background Effect */}
-      <div className="absolute inset-0 overflow-hidden before:absolute before:left-1/4 before:top-0 before:h-[800px] before:w-[800px] before:rounded-full before:blur-3xl dark:before:bg-gradient-to-r dark:before:from-violet-600/20 dark:before:to-indigo-600/20 before:bg-gradient-to-r before:from-blue-400/10 before:to-purple-400/10 z-[-1]" />
+      className="relative px-2 py-4 min-h-screen bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
 
       {/* Header Section */}
-      <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6 max-w-full">
+      <div className="sticky top-20 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 mb-10">
         <h1
           className={cn(
             "text-3xl sm:text-4xl font-extrabold tracking-tight",
