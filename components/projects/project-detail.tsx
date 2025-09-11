@@ -77,7 +77,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     >
 
       {/* Sticky Header Section */}
-      <div className="sticky top-0 z-50 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 mb-6 -mt-4 sm:-mt-8">
+      <div className="sticky top-12 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 mb-6 -mt-6 sm:-mt-8 ">
         <div className="relative w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="relative inline-block">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white relative z-10">
