@@ -4,7 +4,6 @@ import { v2 as cloudinary } from "cloudinary";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 export type ActionResponse = {
@@ -27,22 +26,14 @@ const projectSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().min(1, "Description is required"),
   liveDemoUrl: z
-    .union([
-      z.string().url("Invalid URL format"),
-      z.literal(""),
-      z.null()
-    ])
+    .union([z.string().url("Invalid URL format"), z.literal(""), z.null()])
     .optional()
-    .transform(val => val === "" ? null : val), // Convert empty string to null
+    .transform((val) => (val === "" ? null : val)), // Convert empty string to null
   featuredImage: z.string().optional(),
   codes: z
-    .union([
-      z.string().url("Invalid URL format"),
-      z.literal(""),
-      z.null()
-    ])
+    .union([z.string().url("Invalid URL format"), z.literal(""), z.null()])
     .optional()
-    .transform(val => val === "" ? null : val),
+    .transform((val) => (val === "" ? null : val)),
 });
 
 // Cloudinary upload function
@@ -50,7 +41,7 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     const result = await cloudinary.uploader.upload(
       `data:${file.type};base64,${buffer.toString("base64")}`,
       {
@@ -58,7 +49,7 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
         resource_type: "auto",
       }
     );
-    
+
     return result.secure_url;
   } catch (error) {
     console.error("Cloudinary upload error:", error);
@@ -87,10 +78,13 @@ export async function createProject(
     if (file && file.size > 0) {
       // File validation
       const validTypes = [
-        "image/jpeg", "image/png", "image/gif", 
-        "image/webp", "image/jpg"
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/jpg",
       ];
-      
+
       if (!validTypes.includes(file.type)) {
         return {
           success: false,
@@ -144,32 +138,30 @@ export async function createProject(
       },
     });
 
-    // Revalidate and redirect inside try block
+    // Revalidate cache
     revalidatePath("/projects");
-    redirect("/projects");
 
-    // This return won't execute due to redirect above, but good for type safety
+    // Return success and let the component handle redirect
     return {
       success: true,
       message: "Project created successfully",
     };
-
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
       const errors: Record<string, string> = {};
-      error.issues.forEach(issue => {
-        const path = issue.path.join('.');
+      error.issues.forEach((issue) => {
+        const path = issue.path.join(".");
         errors[path] = issue.message;
       });
-      
+
       return {
         success: false,
         message: "Validation failed",
         errors,
       };
     }
-    
+
     // Handle Cloudinary errors
     if (error instanceof Error && error.message === "Image upload failed") {
       return {
@@ -180,14 +172,14 @@ export async function createProject(
 
     // Handle database errors (Prisma)
     if (error instanceof Error) {
-      if (error.message.includes('Unique constraint')) {
+      if (error.message.includes("Unique constraint")) {
         return {
           success: false,
           message: "A project with this title already exists.",
         };
       }
-      
-      if (error.message.includes('Foreign key constraint')) {
+
+      if (error.message.includes("Foreign key constraint")) {
         return {
           success: false,
           message: "Invalid user reference. Please log in again.",

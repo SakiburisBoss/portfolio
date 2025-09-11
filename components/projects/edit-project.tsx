@@ -1,13 +1,15 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Prisma } from "@prisma/client";
-import React, { useActionState, useState } from "react";
+import React, { useActionState, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { ActionResponse, editProject } from "@/actions/projects/edit-project";
+import { editProject } from "@/actions/projects/edit-project";
+import { ActionResponse } from "@/actions/projects/create-project";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 import Image from "next/image";
 
@@ -17,6 +19,7 @@ type Props = {
 
 const EditProjectPage: React.FC<Props> = ({ project }) => {
   const projectId = project.id;
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState(project.category);
   const [liveDemoUrl, setLiveDemoUrl] = useState(project.liveDemoUrl || "");
   const [codes, setCodes] = useState(project.codes || "");
@@ -30,6 +33,13 @@ const EditProjectPage: React.FC<Props> = ({ project }) => {
     message: undefined,
     errors: undefined,
   });
+
+  // Handle redirect on successful update
+  useEffect(() => {
+    if (state.success) {
+      router.push(`/projects/${projectId}`);
+    }
+  }, [state.success, router, projectId]);
 
   // Handle category change for select component
   const handleCategoryChange = (value: string) => {

@@ -56,6 +56,8 @@ export default function CreateProjectPage() {
       if (result.success) {
         setFeaturedImage(null);
         setLiveDemoUrl("");
+        // Handle redirect on successful creation
+        router.push("/projects");
       }
 
       return {
@@ -193,9 +195,13 @@ export default function CreateProjectPage() {
                         <option value="Mobile App">Mobile App</option>
                         <option value="AI">AI</option>
                         <option value="Design">Design</option>
-                        <option value="Game Development">Game Development</option>
+                        <option value="Game Development">
+                          Game Development
+                        </option>
                         <option value="Data Science">Data Science</option>
-                        <option value="Machine Learning">Machine Learning</option>
+                        <option value="Machine Learning">
+                          Machine Learning
+                        </option>
                         <option value="Blockchain">Blockchain</option>
                       </datalist>
                     </div>

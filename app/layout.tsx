@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import NavBar from "@/components/home/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
+import React from "react";
 
 export const metadata: Metadata = {
   title: "Sakibur's Portfolio",
@@ -66,6 +67,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <head>
           {/* Improves iOS add-to-home-screen naming */}
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta
             name="apple-mobile-web-app-title"
             content="Sakibur's Portfolio"

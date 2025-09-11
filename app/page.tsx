@@ -20,6 +20,12 @@ async function getTechs(): Promise<Techs[]> {
   }
 
   try {
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      console.warn("DATABASE_URL not found, returning empty array");
+      return techsCache || [];
+    }
+
     const techs = await prisma.techs.findMany({
       orderBy: { id: "asc" },
     });
@@ -31,7 +37,8 @@ async function getTechs(): Promise<Techs[]> {
     return techs;
   } catch (error) {
     console.error("Error fetching techs:", error);
-    return techsCache || []; // Return cached data if available, otherwise empty array
+    // Return cached data if available, otherwise empty array
+    return techsCache || [];
   }
 }
 
@@ -39,11 +46,11 @@ export default async function Home() {
   const techs = await getTechs();
 
   return (
-    <main>
+    <main className="w-full max-w-full overflow-x-hidden">
       <HeroSection techs={techs} />
       <Suspense
         fallback={
-          <div className="h-20 bg-gradient-to-r from-white to-gray-50 rounded-lg animate-pulse" />
+          <div className="h-20 bg-gradient-to-r from-white to-gray-50 rounded-lg animate-pulse mx-4" />
         }
       >
         <SkillsCarousel techs={techs} />
