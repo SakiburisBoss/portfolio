@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
 import { deleteProject } from "@/actions/projects/delete-project";
-import { Loader2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{
@@ -27,6 +27,133 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
+
+  const resetIframe = () => {
+    setIframeLoading(true);
+    setIframeError(false);
+    setIframeKey((prev) => prev + 1); // Force iframe re-render
+  };
+
+  // Function to detect actual blocking reason (limited by browser security)
+  const detectBlockingReason = (url: string) => {
+    // We can only make educated guesses, not detect actual headers
+    return {
+      platform: detectPlatform(url),
+      possibleReasons: [
+        "X-Frame-Options: DENY header",
+        "X-Frame-Options: SAMEORIGIN header",
+        "Content-Security-Policy frame-ancestors directive",
+        "Mixed content (HTTP iframe in HTTPS page)",
+        "Network/CORS issues",
+        "Server error (404, 500, etc.)",
+      ],
+      honestMessage:
+        "Browser security prevents us from knowing the exact reason why this iframe was blocked.",
+    };
+  };
+
+  // Function to detect the platform/site type
+  const detectPlatform = (url: string) => {
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+
+      if (
+        hostname.includes("sanity.studio") ||
+        hostname.includes(".sanity.io")
+      ) {
+        return "Sanity Studio";
+      } else if (
+        hostname.includes("google.com") ||
+        hostname.includes("docs.google")
+      ) {
+        return "Google Services";
+      } else if (
+        hostname.includes("notion.so") ||
+        hostname.includes("notion.site")
+      ) {
+        return "Notion";
+      } else if (hostname.includes("airtable.com")) {
+        return "Airtable";
+      } else if (hostname.includes("figma.com")) {
+        return "Figma";
+      } else if (hostname.includes("canva.com")) {
+        return "Canva";
+      } else if (hostname.includes("miro.com")) {
+        return "Miro";
+      } else if (
+        hostname.includes("facebook.com") ||
+        hostname.includes("instagram.com")
+      ) {
+        return "Meta/Facebook";
+      } else if (
+        hostname.includes("twitter.com") ||
+        hostname.includes("x.com")
+      ) {
+        return "Twitter/X";
+      } else if (hostname.includes("linkedin.com")) {
+        return "LinkedIn";
+      } else if (hostname.includes("youtube.com")) {
+        return "YouTube";
+      } else if (hostname.includes("vimeo.com")) {
+        return "Vimeo";
+      } else if (hostname.includes("stripe.com")) {
+        return "Stripe";
+      } else if (hostname.includes("auth0.com")) {
+        return "Auth0";
+      } else if (hostname.includes("hubspot.com")) {
+        return "HubSpot";
+      } else if (hostname.includes("salesforce.com")) {
+        return "Salesforce";
+      } else if (hostname.includes("slack.com")) {
+        return "Slack";
+      } else if (hostname.includes("discord.com")) {
+        return "Discord";
+      } else if (hostname.includes("zoom.us")) {
+        return "Zoom";
+      } else if (hostname.includes("github.com")) {
+        return "GitHub";
+      } else if (hostname.includes("gitlab.com")) {
+        return "GitLab";
+      } else if (
+        hostname.includes("clerk.com") ||
+        hostname.includes("clerk.dev")
+      ) {
+        return "Clerk";
+      } else if (
+        hostname.includes("atlassian.net") ||
+        hostname.includes("jira.com")
+      ) {
+        return "Atlassian/Jira";
+      } else if (
+        hostname.includes("microsoft.com") ||
+        hostname.includes("office.com")
+      ) {
+        return "Microsoft Services";
+      } else {
+        return hostname;
+      }
+    } catch {
+      return "This website";
+    }
+  };
+
+  // Handle iframe timeout for cases where onError doesn't fire
+  useEffect(() => {
+    if (project.liveDemoUrl && iframeLoading) {
+      const timeout = setTimeout(() => {
+        if (iframeLoading) {
+          console.log("Iframe timeout - likely blocked by security headers");
+          setIframeError(true);
+          setIframeLoading(false);
+        }
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [project.liveDemoUrl, iframeLoading]);
 
   const handleDelete = async () => {
     if (
@@ -72,10 +199,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   }
 
   return (
-    <div
-       className="relative min-h-screen px-3 sm:px-4 py-6 sm:py-10 bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
-    >
-
+    <div className="relative min-h-screen px-3 sm:px-4 py-6 sm:py-10 bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
       {/* Sticky Header Section */}
       <div className="sticky top-12 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 mb-6 -mt-6 sm:-mt-10">
         <div className="relative w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -100,7 +224,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
           </Button>
         </div>
       </div>
-      
+
       {/* Main Content Area */}
       <div className="animate-fade-in-up px-2 sm:px-4">
         <div className="flex flex-col xl:flex-row gap-6 lg:gap-10">
@@ -185,7 +309,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                             <polyline points="15 3 21 3 21 9" />
                             <line x1="10" x2="21" y1="14" y2="3" />
                           </svg>
-                          <span className="hidden sm:inline">Visit {project.title}</span>
+                          <span className="hidden sm:inline">
+                            Visit {project.title}
+                          </span>
                           <span className="sm:hidden">Visit Site</span>
                         </span>
                       </Button>
@@ -266,58 +392,154 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     Live Preview
                   </h2>
                 </div>
-                 <div
-                className={cn(
-                  "relative h-[300px] sm:h-[400px] md:h-[500px] w-full overflow-hidden rounded-xl border",
-                  "border-gray-300 bg-gray-100",
-                  "dark:border-gray-700 dark:bg-gray-900/30"
-                )}
-              >
-                {project.liveDemoUrl ? (
-                  <iframe
-                    src={project.liveDemoUrl}
-                    title="Live Demo Preview"
-                    className="w-full h-full"
-                    sandbox="allow-scripts allow-same-origin"
-                  />
-                ) : (
-                  <div
-                    className={cn(
-                      "w-full h-full flex flex-col items-center justify-center p-8 text-center",
-                      "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-400",
-                      "dark:from-gray-800/50 dark:to-gray-900/50 dark:text-gray-500"
-                    )}
-                  >
-                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mb-4 dark:bg-gray-700 dark:border-gray-600" />
-                    <h3 className="text-lg font-medium mb-1">
-                      Demo Unavailable
-                    </h3>
-                    <p className="max-w-xs text-sm">
-                      This project doesn&apos;t have a live demo
+                <div
+                  className={cn(
+                    "relative h-[300px] sm:h-[400px] md:h-[500px] w-full overflow-hidden rounded-xl border",
+                    "border-gray-300 bg-gray-100",
+                    "dark:border-gray-700 dark:bg-gray-900/30"
+                  )}
+                >
+                  {project.liveDemoUrl ? (
+                    <div className="relative w-full h-full">
+                      {/* Loading State */}
+                      {iframeLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 z-10">
+                          <div className="text-center">
+                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Loading preview...
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Error State */}
+                      {iframeError && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 z-10 p-6 text-center">
+                          <AlertTriangle className="h-12 w-12 text-orange-500 mb-3" />
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            Preview Loading Failed
+                          </h3>
+                          <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 max-w-sm">
+                            <p className="mb-2">
+                              <span className="font-semibold text-orange-600 dark:text-orange-400">
+                                {detectPlatform(project.liveDemoUrl!)}
+                              </span>{" "}
+                              could not be loaded in this iframe.
+                            </p>
+                            <details className="text-xs text-left">
+                              <summary className="cursor-pointer font-medium mb-1">
+                                Possible reasons (click to expand):
+                              </summary>
+                              <ul className="list-disc list-inside space-y-1 pl-2">
+                                {detectBlockingReason(
+                                  project.liveDemoUrl!
+                                ).possibleReasons.map((reason, index) => (
+                                  <li key={index}>{reason}</li>
+                                ))}
+                              </ul>
+                              <p className="mt-2 italic text-gray-500 dark:text-gray-400">
+                                {
+                                  detectBlockingReason(project.liveDemoUrl!)
+                                    .honestMessage
+                                }
+                              </p>
+                            </details>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() =>
+                                project.liveDemoUrl &&
+                                window.open(
+                                  project.liveDemoUrl,
+                                  "_blank",
+                                  "noopener,noreferrer"
+                                )
+                              }
+                              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Open in New Tab
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={resetIframe}
+                              className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Iframe */}
+                      <iframe
+                        key={`iframe-${iframeKey}`}
+                        src={project.liveDemoUrl}
+                        title="Live Demo Preview"
+                        className="w-full h-full"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        onLoad={() => {
+                          setIframeLoading(false);
+                          setIframeError(false);
+                        }}
+                        onError={(e) => {
+                          console.log("Iframe error event:", e);
+                          setIframeLoading(false);
+                          setIframeError(true);
+                        }}
+                        style={{
+                          opacity: iframeLoading || iframeError ? 0 : 1,
+                          transition: "opacity 0.3s ease-in-out",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        "w-full h-full flex flex-col items-center justify-center p-8 text-center",
+                        "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-400",
+                        "dark:from-gray-800/50 dark:to-gray-900/50 dark:text-gray-500"
+                      )}
+                    >
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mb-4 dark:bg-gray-700 dark:border-gray-600" />
+                      <h3 className="text-lg font-medium mb-1">
+                        Demo Unavailable
+                      </h3>
+                      <p className="max-w-xs text-sm">
+                        This project doesn&apos;t have a live demo
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+               
+
+                {/* Additional helpful text for users */}
+                {project.liveDemoUrl && (
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-blue-600 dark:text-blue-400"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 12l2 2 4-4" />
+                      </svg>
+                      <strong>Preview not working?</strong> Open manually in a
+                      new tab using the button below.
                     </p>
                   </div>
                 )}
-              </div>
-
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 flex items-center gap-1.5 mt-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-yellow-500"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" x2="12" y1="8" y2="12" />
-                    <line x1="12" x2="12.01" y1="16" y2="16" />
-                  </svg>
-                  Preview not working? Try opening in a new tab
-                </p>
 
                 <Button
                   variant="outline"
@@ -357,14 +579,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       <polyline points="15 3 21 3 21 9" />
                       <line x1="10" x2="21" y1="14" y2="3" />
                     </svg>
-                    <span className="hidden sm:inline">Visit {project.title}</span>
-                    <span className="sm:hidden">Visit Site</span>
+                    <span className="hidden sm:inline">
+                      Visit {project.title}
+                    </span>
+                    <span className="sm:hidden">Visit {project.title}</span>
                   </span>
                 </Button>
               </div>
 
               {/* Action Buttons */}
-               <div className="flex gap-4">
+              <div className="flex gap-4">
                 {isProjectOwner && (
                   <Button
                     asChild
