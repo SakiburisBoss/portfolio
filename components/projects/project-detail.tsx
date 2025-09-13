@@ -101,12 +101,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     }
   };
 
-  // Check if URL is potentially embeddable
-  const isUrlEmbeddable = (url: string) => {
-    const platform = detectPlatform(url);
-    return !platform.blocksProbable;
-  };
-
   // Enhanced iframe timeout with better error detection
   useEffect(() => {
     if (project.liveDemoUrl && iframeLoading) {
@@ -365,7 +359,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       <AlertTriangle className="h-4 w-4" />
                       <span>
                         <strong>{platform.name}</strong> typically blocks iframe embedding. 
-                        If preview fails, use the "Open in New Tab" button.
+                        If preview fails, use the &ldquo;Open in New Tab&rdquo; button.
                       </span>
                     </p>
                   </div>
@@ -530,7 +524,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         <path d="M8 12l2 2 4-4" />
                       </svg>
                       <span>
-                        Preview loading slowly? Click "Visit {project.title}" to open in a new tab for the full experience.
+                        Preview loading slowly? Click &ldquo;Visit {project.title}&rdquo; to open in a new tab for the full experience.
                       </span>
                     </p>
                   </div>
