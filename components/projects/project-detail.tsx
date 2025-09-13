@@ -33,12 +33,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   const [loadAttempts, setLoadAttempts] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loadStartRef = useRef<number>(0);
 
   const resetIframe = () => {
     setIframeLoading(true);
     setIframeError(false);
     setLoadAttempts(prev => prev + 1);
     setIframeKey((prev) => prev + 1);
+    loadStartRef.current = Date.now();
     
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -48,7 +50,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   const detectPlatform = (url: string) => {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      const fullUrl = url.toLowerCase();
 
       if (hostname.includes("vercel.app") || hostname.includes("netlify.app")) {
         return { name: "Vercel/Netlify", blocksProbable: false };
@@ -60,6 +61,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
         return { name: "Railway", blocksProbable: false };
       } else if (hostname.includes("render.com")) {
         return { name: "Render", blocksProbable: false };
+      } else if (hostname.includes("sakibur.me") || hostname.includes("bytedeal")) {
+        return { name: "Custom Domain", blocksProbable: true };
       } else if (hostname.includes("sanity.studio") || hostname.includes(".sanity.io")) {
         return { name: "Sanity Studio", blocksProbable: true };
       } else if (hostname.includes("google.com") || hostname.includes("docs.google")) {
@@ -88,7 +91,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
         return { name: "Auth0", blocksProbable: true };
       } else if (hostname.includes("clerk.com") || hostname.includes("clerk.dev")) {
         return { name: "Clerk", blocksProbable: true };
-      } else if (fullUrl.includes("localhost") || hostname.includes("127.0.0.1")) {
+      } else if (url.includes("localhost") || hostname.includes("127.0.0.1")) {
         return { name: "Local Development", blocksProbable: true };
       } else {
         return { name: hostname, blocksProbable: false };
@@ -105,7 +108,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       }
 
       const platform = detectPlatform(project.liveDemoUrl);
-      const timeoutDuration = platform.blocksProbable ? 5000 : 10000;
+      // Shorter timeout for known blocking platforms
+      const timeoutDuration = platform.blocksProbable ? 3000 : 8000;
+      loadStartRef.current = Date.now();
       
       timeoutRef.current = setTimeout(() => {
         if (iframeLoading) {
@@ -121,6 +126,24 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       };
     }
   }, [project.liveDemoUrl, iframeLoading, iframeKey]);
+
+  // Check if iframe failed to load quickly (connection refused)
+  useEffect(() => {
+    const checkIframeHealth = () => {
+      if (iframeRef.current && iframeLoading && loadStartRef.current > 0) {
+        const elapsed = Date.now() - loadStartRef.current;
+        // If more than 2 seconds and still loading, likely blocked
+        if (elapsed > 2000) {
+          setIframeError(true);
+          setIframeLoading(false);
+        }
+      }
+    };
+
+    const healthCheckInterval = setInterval(checkIframeHealth, 1000);
+    
+    return () => clearInterval(healthCheckInterval);
+  }, [iframeLoading, iframeKey]);
 
   const handleDelete = async () => {
     if (
@@ -345,8 +368,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     <p className="text-sm text-orange-800 dark:text-orange-200 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4" />
                       <span>
-                        <strong>{platform.name}</strong> typically blocks iframe embedding. 
-                        If preview fails, use the {'"'}Open in New Tab{'"'} button.
+                        <strong>{platform.name}</strong> blocks iframe embedding for security. 
+                        Use the "Visit" button to view the site.
                       </span>
                     </p>
                   </div>
@@ -361,7 +384,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 >
                   {project.liveDemoUrl ? (
                     <div className="relative w-full h-full">
-                      {iframeLoading && (
+                      {iframeLoading && !iframeError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 z-10">
                           <div className="text-center">
                             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
@@ -381,29 +404,23 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 z-10 p-6 text-center">
                           <AlertTriangle className="h-12 w-12 text-orange-500 mb-3" />
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Preview Unavailable
+                            Site Blocks Iframe
                           </h3>
                           <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 max-w-sm">
                             <p className="mb-2">
                               <span className="font-semibold text-orange-600 dark:text-orange-400">
                                 {platform?.name}
                               </span>{" "}
-                              {platform?.blocksProbable 
-                                ? "blocks iframe embedding for security reasons."
-                                : "could not be loaded in the preview frame."
-                              }
+                              refused to connect in iframe for security reasons.
                             </p>
                             
                             <div className="text-xs text-left bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                              <p className="font-medium mb-2">Common reasons:</p>
+                              <p className="font-medium mb-2">This happens when:</p>
                               <ul className="list-disc list-inside space-y-1">
-                                <li>X-Frame-Options security header</li>
-                                <li>Content Security Policy restrictions</li>
-                                <li>HTTPS/HTTP mixed content issues</li>
-                                <li>Network connectivity problems</li>
-                                {platform?.blocksProbable && (
-                                  <li>Platform security policies</li>
-                                )}
+                                <li>X-Frame-Options: DENY/SAMEORIGIN</li>
+                                <li>Content Security Policy blocks frames</li>
+                                <li>HTTPS/HTTP mixed content</li>
+                                <li>Server blocks iframe embedding</li>
                               </ul>
                             </div>
                           </div>
@@ -421,17 +438,17 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                             >
                               <ExternalLink className="h-4 w-4 mr-2" />
-                              Open in New Tab
+                              Open Full Site
                             </Button>
                             
-                            {!platform?.blocksProbable && loadAttempts < 3 && (
+                            {loadAttempts < 2 && (
                               <Button
                                 variant="outline"
                                 onClick={resetIframe}
                                 className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                               >
                                 <RefreshCw className="h-4 w-4 mr-2" />
-                                Retry ({3 - loadAttempts} left)
+                                Retry
                               </Button>
                             )}
                           </div>
@@ -448,10 +465,14 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         referrerPolicy="strict-origin-when-cross-origin"
                         loading="eager"
                         onLoad={() => {
-                          setIframeLoading(false);
-                          setIframeError(false);
-                          if (timeoutRef.current) {
-                            clearTimeout(timeoutRef.current);
+                          const elapsed = Date.now() - loadStartRef.current;
+                          // Only consider it loaded if it actually took time (not immediate failure)
+                          if (elapsed > 500) {
+                            setIframeLoading(false);
+                            setIframeError(false);
+                            if (timeoutRef.current) {
+                              clearTimeout(timeoutRef.current);
+                            }
                           }
                         }}
                         onError={() => {
@@ -485,31 +506,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     </div>
                   )}
                 </div>
-
-                {project.liveDemoUrl && !iframeError && (
-                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
-                    <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-blue-600 dark:text-blue-400"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M8 12l2 2 4-4" />
-                      </svg>
-                      <span>
-                        Preview loading slowly? Click {'"'}Visit {project.title}{'"'} to open in a new tab for the full experience.
-                      </span>
-                    </p>
-                  </div>
-                )}
 
                 <Button
                   variant="outline"
