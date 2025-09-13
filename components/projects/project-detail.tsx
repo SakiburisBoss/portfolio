@@ -108,7 +108,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       }
 
       const platform = detectPlatform(project.liveDemoUrl);
-      // Shorter timeout for known blocking platforms
       const timeoutDuration = platform.blocksProbable ? 3000 : 8000;
       loadStartRef.current = Date.now();
       
@@ -127,12 +126,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     }
   }, [project.liveDemoUrl, iframeLoading, iframeKey]);
 
-  // Check if iframe failed to load quickly (connection refused)
   useEffect(() => {
     const checkIframeHealth = () => {
       if (iframeRef.current && iframeLoading && loadStartRef.current > 0) {
         const elapsed = Date.now() - loadStartRef.current;
-        // If more than 2 seconds and still loading, likely blocked
         if (elapsed > 2000) {
           setIframeError(true);
           setIframeLoading(false);
@@ -369,7 +366,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       <AlertTriangle className="h-4 w-4" />
                       <span>
                         <strong>{platform.name}</strong> blocks iframe embedding for security. 
-                        Use the "Visit" button to view the site.
+                        Use the &quot;Visit&quot; button to view the site.
                       </span>
                     </p>
                   </div>
@@ -466,7 +463,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         loading="eager"
                         onLoad={() => {
                           const elapsed = Date.now() - loadStartRef.current;
-                          // Only consider it loaded if it actually took time (not immediate failure)
                           if (elapsed > 500) {
                             setIframeLoading(false);
                             setIframeError(false);
@@ -501,7 +497,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         Demo Unavailable
                       </h3>
                       <p className="max-w-xs text-sm">
-                        This project doesn{`'`}t have a live demo URL
+                        This project doesn&apos;t have a live demo URL
                       </p>
                     </div>
                   )}
