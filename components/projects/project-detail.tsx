@@ -32,7 +32,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   const [iframeKey, setIframeKey] = useState(0);
   const [loadAttempts, setLoadAttempts] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const resetIframe = () => {
     setIframeLoading(true);
