@@ -180,11 +180,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       <div
         className={cn(
           "relative px-4 py-8 min-h-screen",
-          "bg-white text-gray-900",
-          "dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white"
+          "text-gray-900",
+          "dark:text-white"
         )}
       >
-        <div className="absolute inset-0 before:absolute before:left-1/4 before:top-0 before:h-[800px] before:w-[800px] before:rounded-full before:blur-3xl dark:before:bg-gradient-to-r dark:before:from-violet-600/20 dark:before:to-indigo-600/20 before:bg-gradient-to-r before:from-blue-400/10 before:to-purple-400/10 z-[-1]" />
         <div className="relative text-center text-xl text-gray-900 dark:text-white">
           Project not found
         </div>
@@ -199,7 +198,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   }
 
   return (
-    <div className="relative min-h-screen px-3 sm:px-4 py-6 sm:py-10 bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
+    <div className="relative min-h-screen px-3 sm:px-4 py-6 sm:py-10 dark:text-white">
       {/* Sticky Header Section */}
       <div className="sticky top-12 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 mb-6 -mt-6 sm:-mt-10">
         <div className="relative w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

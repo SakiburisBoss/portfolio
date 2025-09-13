@@ -80,6 +80,11 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+              {/* Background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br  from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900"></div>
+
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 dark:from-blue-400/5 dark:to-purple-500/5 blur-3xl"></div>
             <NavBar />
             {children}
           </ThemeProvider>

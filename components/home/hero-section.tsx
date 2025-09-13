@@ -18,7 +18,7 @@ import { Techs } from "@prisma/client";
 const HeroSection = ({ techs }: { techs: Techs[] }) => {
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-purple-50 via-white to-emerald-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900">
+    <section className="relative min-h-screen w-full overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/20 dark:bg-blue-600/20 rounded-full blur-3xl animate-float"></div>

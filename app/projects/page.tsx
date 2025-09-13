@@ -24,10 +24,10 @@ const ProjectsPage: React.FC<SearchPageProps> = async ({ searchParams }) => {
 
   return (
     <div
-      className="relative px-2 py-4 min-h-screen bg-white text-gray-900 dark:bg-gradient-to-br dark:from-purple-950 dark:via-indigo-950 dark:to-indigo-950 dark:text-white">
+      className="relative px-2 py-4 min-h-screen  dark:text-white">
 
       {/* Header Section */}
-      <div className="sticky top-20 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 mb-10">
+      <div className="sticky top-20 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 mb-10 px-4 py-6">
         <h1
           className={cn(
             "text-3xl sm:text-4xl font-extrabold tracking-tight",
