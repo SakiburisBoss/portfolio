@@ -40,19 +40,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     setLoadAttempts(prev => prev + 1);
     setIframeKey((prev) => prev + 1);
     
-    // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
   };
 
-  // Enhanced platform detection with more specific handling
   const detectPlatform = (url: string) => {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
       const fullUrl = url.toLowerCase();
 
-      // Check for specific platforms that commonly block iframes
       if (hostname.includes("vercel.app") || hostname.includes("netlify.app")) {
         return { name: "Vercel/Netlify", blocksProbable: false };
       } else if (hostname.includes("github.io")) {
@@ -101,21 +98,17 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     }
   };
 
-  // Enhanced iframe timeout with better error detection
   useEffect(() => {
     if (project.liveDemoUrl && iframeLoading) {
-      // Clear any existing timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
-      // Set timeout based on platform
       const platform = detectPlatform(project.liveDemoUrl);
       const timeoutDuration = platform.blocksProbable ? 5000 : 10000;
       
       timeoutRef.current = setTimeout(() => {
         if (iframeLoading) {
-          console.log(`Iframe timeout after ${timeoutDuration}ms - likely blocked by security headers or network issues`);
           setIframeError(true);
           setIframeLoading(false);
         }
@@ -207,9 +200,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
           <div className="w-full xl:w-1/2">
             <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden dark:bg-gray-800/80 dark:border dark:border-gray-700 group relative transition-all dark:before:absolute dark:before:-inset-[2px] dark:before:z-[-1] dark:before:rounded-[inherit] dark:before:bg-[conic-gradient(from_var(--angle),transparent_20%,rgba(192,132,252,0.6)_50%,transparent_80%)] dark:before:opacity-0 dark:hover:before:opacity-100 dark:before:transition-opacity dark:before:duration-500 dark:after:absolute dark:after:-inset-[3px] dark:after:z-[-2] dark:after:rounded-[inherit] dark:after:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.4)_0%,transparent_70%)] dark:after:blur-[12px] dark:after:opacity-0 dark:hover:after:opacity-100 dark:after:transition-opacity dark:after:duration-700">
               <CardContent className="p-4 sm:p-6">
-                {/* Project Details */}
                 <div className="space-y-6">
-                  {/* Featured Image */}
                   <div className="relative w-full aspect-video max-h-[400px] sm:max-h-[500px] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                     <Image
                       src={project.featuredImage}
@@ -221,7 +212,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     />
                   </div>
 
-                  {/* Project Info */}
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between gap-4">
                       <h1
@@ -282,7 +272,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     </div>
                   </div>
 
-                  {/* Author & Metadata */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 gap-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
@@ -340,7 +329,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     </h2>
                   </div>
                   
-                  {/* Platform indicator */}
                   {platform && (
                     <div className={`text-xs px-2 py-1 rounded-full ${
                       platform.blocksProbable 
@@ -352,14 +340,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   )}
                 </div>
 
-                {/* Warning for potentially problematic platforms */}
                 {platform && platform.blocksProbable && (
                   <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-4">
                     <p className="text-sm text-orange-800 dark:text-orange-200 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4" />
                       <span>
                         <strong>{platform.name}</strong> typically blocks iframe embedding. 
-                        If preview fails, use the &ldquo;Open in New Tab&rdquo; button.
+                        If preview fails, use the {'"'}Open in New Tab{'"'} button.
                       </span>
                     </p>
                   </div>
@@ -374,7 +361,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 >
                   {project.liveDemoUrl ? (
                     <div className="relative w-full h-full">
-                      {/* Loading State */}
                       {iframeLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 z-10">
                           <div className="text-center">
@@ -391,7 +377,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         </div>
                       )}
 
-                      {/* Enhanced Error State */}
                       {iframeError && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 z-10 p-6 text-center">
                           <AlertTriangle className="h-12 w-12 text-orange-500 mb-3" />
@@ -453,7 +438,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         </div>
                       )}
 
-                      {/* Enhanced Iframe */}
                       <iframe
                         ref={iframeRef}
                         key={`iframe-${iframeKey}`}
@@ -464,15 +448,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         referrerPolicy="strict-origin-when-cross-origin"
                         loading="eager"
                         onLoad={() => {
-                          console.log("Iframe loaded successfully");
                           setIframeLoading(false);
                           setIframeError(false);
                           if (timeoutRef.current) {
                             clearTimeout(timeoutRef.current);
                           }
                         }}
-                        onError={(e) => {
-                          console.log("Iframe error event:", e);
+                        onError={() => {
                           setIframeLoading(false);
                           setIframeError(true);
                           if (timeoutRef.current) {
@@ -498,13 +480,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         Demo Unavailable
                       </h3>
                       <p className="max-w-xs text-sm">
-                        This project doesn&apos;t have a live demo URL
+                        This project doesn{`'`}t have a live demo URL
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Helpful information */}
                 {project.liveDemoUrl && !iframeError && (
                   <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
                     <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
@@ -524,7 +505,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         <path d="M8 12l2 2 4-4" />
                       </svg>
                       <span>
-                        Preview loading slowly? Click &ldquo;Visit {project.title}&rdquo; to open in a new tab for the full experience.
+                        Preview loading slowly? Click {'"'}Visit {project.title}{'"'} to open in a new tab for the full experience.
                       </span>
                     </p>
                   </div>
@@ -558,7 +539,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 </Button>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-4">
                 {isProjectOwner && (
                   <Button
