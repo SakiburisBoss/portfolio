@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
 import { deleteProject } from "@/actions/projects/delete-project";
-import { Loader2, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
+import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{ include: { author: true } }>;
@@ -29,25 +29,65 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     "loading" | "checking" | "working" | "failed"
   >("loading");
   const [showIframe, setShowIframe] = useState(false);
+  const [frameError, setFrameError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debug: Log iframe status changes
+  useEffect(() => {
+    // Status change tracking (removed console.log for production)
+  }, [iframeStatus]);
+
+  // Debug: Log showIframe changes
+  useEffect(() => {
+    // showIframe change tracking (removed console.log for production)
+  }, [showIframe]);
 
   const resetIframe = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIframeStatus("loading");
     setShowIframe(false);
-    setTimeout(() => setShowIframe(true), 100);
+    setFrameError(null); // Clear any previous frame errors
+    // Reset iframe after a brief delay
+    setTimeout(() => {
+      setShowIframe(true);
+      setIframeStatus("checking");
+    }, 100);
   };
 
-  const getErrorMessage = () => ({
-    title: "Preview Not Available",
-    description: <>This website cannot be displayed in an iframe preview for security reasons.</>,
-    icon: "🚫",
-  });
+  const getErrorMessage = () => {
+    if (frameError) {
+      return {
+        title: "Website Blocks Iframe Preview",
+        description: (
+          <>
+            This website has security settings that prevent it from being
+            displayed in an iframe preview.
+            <br />
+            <span className="text-xs opacity-75 mt-1 block">
+              Error: {frameError}
+            </span>
+          </>
+        ),
+        icon: "🔒",
+      };
+    }
+
+    return {
+      title: "Preview Not Available",
+      description: (
+        <>
+          This website cannot be displayed in an iframe preview for security
+          reasons.
+        </>
+      ),
+      icon: "🚫",
+    };
+  };
 
   // Initial iframe show delay for UX
   useEffect(() => {
-    if (!project.liveDemoUrl) return;
+    if (!project.liveDemoUrl) {
+      return;
+    }
     const timer = setTimeout(() => {
       setShowIframe(true);
       setIframeStatus("checking");
@@ -55,29 +95,97 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
     return () => clearTimeout(timer);
   }, [project.liveDemoUrl]);
 
-  // Listen for handshake from iframe
+  // Frame blocking detection and timeout handling
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data === "iframe-ready") {
-        setIframeStatus("working");
+    if (!project.liveDemoUrl) {
+      return;
+    }
+
+    console.log(
+      "� Setting up frame blocking detection for:",
+      project.liveDemoUrl
+    );
+
+    // Enhanced frame blocking detection - check after a short delay
+    const frameCheckTimer = setTimeout(() => {
+      console.log("🔍 Checking for frame blocking...");
+      const iframe = iframeRef.current;
+
+      if (iframe) {
+        try {
+          // Try to access iframe document - this will throw if blocked
+          const doc = iframe.contentDocument || iframe.contentWindow?.document;
+
+          if (!doc) {
+            console.log(
+              "🚫 No document access - likely blocked by X-Frame-Options"
+            );
+            setFrameError(
+              "Website blocks iframe embedding (X-Frame-Options: deny)"
+            );
+            setIframeStatus("failed");
+            return;
+          }
+
+          // Check if iframe has been redirected to about:blank or error page
+          const currentSrc = iframe.contentWindow?.location?.href;
+          if (
+            currentSrc === "about:blank" ||
+            currentSrc?.includes("about:blank")
+          ) {
+            console.log("🚫 Iframe redirected to about:blank - likely blocked");
+            setFrameError(
+              "Website blocks iframe embedding (redirected to blank page)"
+            );
+            setIframeStatus("failed");
+            return;
+          }
+
+          console.log("✅ Frame access check passed");
+        } catch (error) {
+          console.log("🚫 Frame access denied:", error);
+          setFrameError(
+            "Website blocks iframe embedding (frame access denied)"
+          );
+          setIframeStatus("failed");
+          return;
+        }
       }
-    };
+    }, 2000); // Check after 2 seconds
 
-    window.addEventListener("message", handleMessage);
-
-    // fallback timeout
+    // fallback timeout - only set once when iframe starts loading
     const timer = setTimeout(() => {
-      if (iframeStatus !== "working") setIframeStatus("failed");
-    }, 3000);
+      console.log("⏱️ 5-second timeout reached, checking current status...");
+      setIframeStatus((current) => {
+        console.log(
+          "📊 Current status:",
+          current,
+          "-> Setting to:",
+          current === "working" ? "working" : "failed"
+        );
+        if (current !== "working") {
+          // If we haven't detected a specific frame error, set a generic one
+          setFrameError(
+            (prev) => prev || "Timeout - website may not allow iframe embedding"
+          );
+        }
+        return current === "working" ? "working" : "failed";
+      });
+    }, 5000);
 
     return () => {
-      window.removeEventListener("message", handleMessage);
+      console.log("🧹 Cleaning up frame detection timers");
       clearTimeout(timer);
+      clearTimeout(frameCheckTimer);
     };
-  }, [iframeStatus]);
+  }, [project.liveDemoUrl]);
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this project? This action is irreversible"))
+    if (
+      !confirm(
+        "Are you sure you want to delete this project? This action is irreversible"
+      )
+    )
       return;
     try {
       setIsDeleting(true);
@@ -85,14 +193,21 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
       await deleteProject(project.id);
     } catch (error) {
       console.error(error);
-      setDeleteError(error instanceof Error ? error.message : "Failed to delete project");
+      setDeleteError(
+        error instanceof Error ? error.message : "Failed to delete project"
+      );
       setIsDeleting(false);
     }
   };
 
   if (!project) {
     return (
-      <div className={cn("relative px-4 py-8 min-h-screen", "text-gray-900 dark:text-white")}>
+      <div
+        className={cn(
+          "relative px-4 py-8 min-h-screen",
+          "text-gray-900 dark:text-white"
+        )}
+      >
         Project not found
         <Button asChild>
           <Link href="/projects">Back to Projects</Link>
@@ -143,7 +258,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     disabled={!project.liveDemoUrl}
                     onClick={() =>
                       project.liveDemoUrl &&
-                      window.open(project.liveDemoUrl, "_blank", "noopener,noreferrer")
+                      window.open(
+                        project.liveDemoUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
                     }
                   >
                     Visit {project.title}
@@ -187,9 +306,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     })}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column - Live Preview */}
@@ -208,12 +327,15 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
               >
                 {project.liveDemoUrl ? (
                   <>
-                    {(iframeStatus === "loading" || iframeStatus === "checking") && (
+                    {(iframeStatus === "loading" ||
+                      iframeStatus === "checking") && (
                       <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-50 dark:bg-gray-800">
                         <div className="text-center">
                           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {iframeStatus === "loading" ? "Preparing preview..." : "Loading preview..."}
+                            {iframeStatus === "loading"
+                              ? "Preparing preview..."
+                              : "Loading preview..."}
                           </p>
                         </div>
                       </div>
@@ -228,7 +350,24 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                           {getErrorMessage().description}
                         </p>
-                        <Button onClick={resetIframe}>Retry</Button>
+                        <div className="flex gap-3 flex-wrap justify-center">
+                          <Button onClick={resetIframe} variant="outline">
+                            Retry Preview
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              project.liveDemoUrl &&
+                              window.open(
+                                project.liveDemoUrl,
+                                "_blank",
+                                "noopener,noreferrer"
+                              )
+                            }
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            Preview not working? Open in New Tab
+                          </Button>
+                        </div>
                       </div>
                     )}
 
@@ -240,6 +379,77 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         className="w-full h-full"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
                         referrerPolicy="no-referrer-when-downgrade"
+                        loading="eager"
+                        onLoad={() => {
+                          console.log("🎯 Iframe onLoad event fired");
+
+                          // Enhanced blocking detection on load
+                          const iframe = iframeRef.current;
+                          if (iframe) {
+                            try {
+                              // Check if we can access the iframe's document
+                              const doc =
+                                iframe.contentDocument ||
+                                iframe.contentWindow?.document;
+                              const location = iframe.contentWindow?.location;
+
+                              console.log("🔍 Iframe document check:", {
+                                hasDocument: !!doc,
+                                locationHref: location?.href,
+                                expectedUrl: project.liveDemoUrl,
+                              });
+
+                              // If iframe loads but shows about:blank, it's likely blocked
+                              if (location?.href === "about:blank" || !doc) {
+                                console.log(
+                                  "� Iframe blocked - showing about:blank or no document access"
+                                );
+                                setFrameError(
+                                  "Website blocks iframe embedding (X-Frame-Options: deny)"
+                                );
+                                setIframeStatus("failed");
+                                return;
+                              }
+
+                              // If location doesn't match what we expected, might be blocked/redirected
+                              if (location?.href !== project.liveDemoUrl) {
+                                console.log(
+                                  "🚫 Iframe URL mismatch - expected:",
+                                  project.liveDemoUrl,
+                                  "got:",
+                                  location?.href
+                                );
+                                setFrameError(
+                                  "Website redirected iframe or blocked embedding"
+                                );
+                                setIframeStatus("failed");
+                                return;
+                              }
+
+                              console.log("✅ Iframe content seems accessible");
+                            } catch (securityError) {
+                              console.log(
+                                "🚫 Security error accessing iframe:",
+                                securityError
+                              );
+                              setFrameError(
+                                "Website blocks iframe embedding (security restrictions)"
+                              );
+                              setIframeStatus("failed");
+                              return;
+                            }
+                          }
+
+                          // If we get here, iframe loaded successfully
+                          console.log(
+                            "✅ Iframe loaded successfully, setting status to working"
+                          );
+                          setIframeStatus("working");
+                        }}
+                        onError={() => {
+                          console.log("💥 Iframe onError event fired");
+                          setIframeStatus("failed");
+                        }}
                         style={{
                           opacity: iframeStatus === "working" ? 1 : 0.1,
                           transition: "opacity 0.3s ease-in-out",
@@ -249,8 +459,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 text-gray-400 dark:text-gray-500 rounded-xl border-2 border-dashed dark:border-gray-600">
-                    <h3 className="text-lg font-medium mb-1">Demo Unavailable</h3>
-                    <p className="max-w-xs text-sm">This project doesn&apos;t have a live demo</p>
+                    <h3 className="text-lg font-medium mb-1">
+                      Demo Unavailable
+                    </h3>
+                    <p className="max-w-xs text-sm">
+                      This project doesn&apos;t have a live demo
+                    </p>
                   </div>
                 )}
               </div>
@@ -259,8 +473,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
             {/* Action Buttons */}
             <div className="flex gap-4">
               {isProjectOwner && (
-                <Button asChild className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md">
-                  <Link href={`/projects/${project.id}/edit`}>Edit Project</Link>
+                <Button
+                  asChild
+                  className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md"
+                >
+                  <Link href={`/projects/${project.id}/edit`}>
+                    Edit Project
+                  </Link>
                 </Button>
               )}
 
@@ -268,7 +487,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 variant="outline"
                 disabled={!project.codes}
                 className="flex-1 py-6 rounded-xl text-gray-900 font-bold shadow-sm"
-                onClick={() => project.codes && window.open(project.codes, "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  project.codes &&
+                  window.open(project.codes, "_blank", "noopener,noreferrer")
+                }
               >
                 View Code
               </Button>
