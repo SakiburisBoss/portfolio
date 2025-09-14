@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
 import { deleteProject } from "@/actions/projects/delete-project";
-import { Loader2, Trash2, ExternalLink, AlertTriangle, RefreshCw } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Loader2, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{
@@ -30,117 +30,338 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
-  const [loadAttempts, setLoadAttempts] = useState(0);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const loadStartRef = useRef<number>(0);
+  const [errorType, setErrorType] = useState<
+    "timeout" | "blocked" | "network" | "unknown"
+  >("unknown");
 
   const resetIframe = () => {
     setIframeLoading(true);
     setIframeError(false);
-    setLoadAttempts(prev => prev + 1);
-    setIframeKey((prev) => prev + 1);
-    loadStartRef.current = Date.now();
-    
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    setErrorType("unknown");
+    setIframeKey((prev) => prev + 1); // Force iframe re-render
+  };
+
+  // Force check function to detect blocking immediately
+  const forceCheckIframeStatus = useCallback(() => {
+    const iframe = document.querySelector(
+      `iframe[data-key="iframe-${iframeKey}"]`
+    ) as HTMLIFrameElement;
+    if (iframe && iframeLoading) {
+      try {
+        // Multiple checks to catch different blocking scenarios
+        const hasContentWindow = !!iframe.contentWindow;
+        const srcMatches = iframe.src === project.liveDemoUrl;
+
+        if (!hasContentWindow || !srcMatches) {
+          console.log("Force check: Iframe blocked or failed to load");
+          setIframeError(true);
+          setIframeLoading(false);
+          setErrorType("blocked");
+          return true; // Found an issue
+        }
+
+        // Try to access contentDocument
+        try {
+          const doc = iframe.contentDocument;
+          if (doc === null) {
+            console.log("Force check: ContentDocument access denied");
+            setIframeError(true);
+            setIframeLoading(false);
+            setErrorType("blocked");
+            return true; // Found an issue
+          }
+        } catch {
+          console.log("Force check: ContentDocument access threw error");
+          setIframeError(true);
+          setIframeLoading(false);
+          setErrorType("blocked");
+          return true; // Found an issue
+        }
+      } catch {
+        console.log("Force check: General iframe access error");
+        setIframeError(true);
+        setIframeLoading(false);
+        setErrorType("blocked");
+        return true; // Found an issue
+      }
+    }
+    return false; // No issues found
+  }, [iframeKey, iframeLoading, project.liveDemoUrl]);
+
+  // Function to get error message based on error type
+ const getErrorMessage = () => {
+    const platform = detectPlatform(project.liveDemoUrl!);
+
+    switch (errorType) {
+      case "timeout":
+        return {
+          title: "Preview Loading Timeout",
+          description: (
+            <>
+              <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{platform}</span>
+              {" "}is taking too long to load. This often indicates the site is blocking iframe embedding.
+            </>
+          ),
+          icon: "⏱️",
+        };
+      case "blocked":
+        return {
+          title: "Preview Blocked",
+          description: (
+            <>
+              <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{platform}</span>
+              {" "}has blocked iframe embedding for security reasons.
+            </>
+          ),
+          icon: "🚫",
+        };
+      case "network":
+        return {
+          title: "Network Error",
+          description: (
+            <>
+              Unable to connect to <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{platform}</span>. Please check your internet connection.
+            </>
+          ),
+          icon: "🌐",
+        };
+      default:
+        return {
+          title: "Preview Loading Failed",
+          description: (
+            <>
+              <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{platform}</span>
+              {" "}could not be loaded in this iframe.
+            </>
+          ),
+          icon: "⚠️",
+        };
     }
   };
 
+  // Function to detect the platform/site type
   const detectPlatform = (url: string) => {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
 
-      if (hostname.includes("vercel.app") || hostname.includes("netlify.app")) {
-        return { name: "Vercel/Netlify", blocksProbable: false };
-      } else if (hostname.includes("github.io")) {
-        return { name: "GitHub Pages", blocksProbable: false };
-      } else if (hostname.includes("herokuapp.com")) {
-        return { name: "Heroku", blocksProbable: false };
-      } else if (hostname.includes("railway.app")) {
-        return { name: "Railway", blocksProbable: false };
-      } else if (hostname.includes("render.com")) {
-        return { name: "Render", blocksProbable: false };
-      } else if (hostname.includes("sakibur.me") || hostname.includes("bytedeal")) {
-        return { name: "Custom Domain", blocksProbable: true };
-      } else if (hostname.includes("sanity.studio") || hostname.includes(".sanity.io")) {
-        return { name: "Sanity Studio", blocksProbable: true };
-      } else if (hostname.includes("google.com") || hostname.includes("docs.google")) {
-        return { name: "Google Services", blocksProbable: true };
-      } else if (hostname.includes("notion.so") || hostname.includes("notion.site")) {
-        return { name: "Notion", blocksProbable: true };
+      if (
+        hostname.includes("sanity.studio") ||
+        hostname.includes(".sanity.io")
+      ) {
+        return "Sanity Studio";
+      } else if (
+        hostname.includes("google.com") ||
+        hostname.includes("docs.google")
+      ) {
+        return "Google Services";
+      } else if (
+        hostname.includes("notion.so") ||
+        hostname.includes("notion.site")
+      ) {
+        return "Notion";
       } else if (hostname.includes("airtable.com")) {
-        return { name: "Airtable", blocksProbable: true };
+        return "Airtable";
       } else if (hostname.includes("figma.com")) {
-        return { name: "Figma", blocksProbable: true };
+        return "Figma";
       } else if (hostname.includes("canva.com")) {
-        return { name: "Canva", blocksProbable: true };
+        return "Canva";
       } else if (hostname.includes("miro.com")) {
-        return { name: "Miro", blocksProbable: true };
-      } else if (hostname.includes("facebook.com") || hostname.includes("instagram.com")) {
-        return { name: "Meta/Facebook", blocksProbable: true };
-      } else if (hostname.includes("twitter.com") || hostname.includes("x.com")) {
-        return { name: "Twitter/X", blocksProbable: true };
+        return "Miro";
+      } else if (
+        hostname.includes("facebook.com") ||
+        hostname.includes("instagram.com")
+      ) {
+        return "Meta/Facebook";
+      } else if (
+        hostname.includes("twitter.com") ||
+        hostname.includes("x.com")
+      ) {
+        return "Twitter/X";
       } else if (hostname.includes("linkedin.com")) {
-        return { name: "LinkedIn", blocksProbable: true };
+        return "LinkedIn";
       } else if (hostname.includes("youtube.com")) {
-        return { name: "YouTube", blocksProbable: true };
+        return "YouTube";
+      } else if (hostname.includes("vimeo.com")) {
+        return "Vimeo";
       } else if (hostname.includes("stripe.com")) {
-        return { name: "Stripe", blocksProbable: true };
+        return "Stripe";
       } else if (hostname.includes("auth0.com")) {
-        return { name: "Auth0", blocksProbable: true };
-      } else if (hostname.includes("clerk.com") || hostname.includes("clerk.dev")) {
-        return { name: "Clerk", blocksProbable: true };
-      } else if (url.includes("localhost") || hostname.includes("127.0.0.1")) {
-        return { name: "Local Development", blocksProbable: true };
+        return "Auth0";
+      } else if (hostname.includes("hubspot.com")) {
+        return "HubSpot";
+      } else if (hostname.includes("salesforce.com")) {
+        return "Salesforce";
+      } else if (hostname.includes("slack.com")) {
+        return "Slack";
+      } else if (hostname.includes("discord.com")) {
+        return "Discord";
+      } else if (hostname.includes("zoom.us")) {
+        return "Zoom";
+      } else if (hostname.includes("github.com")) {
+        return "GitHub";
+      } else if (hostname.includes("gitlab.com")) {
+        return "GitLab";
+      } else if (
+        hostname.includes("clerk.com") ||
+        hostname.includes("clerk.dev")
+      ) {
+        return "Clerk";
+      } else if (
+        hostname.includes("atlassian.net") ||
+        hostname.includes("jira.com")
+      ) {
+        return "Atlassian/Jira";
+      } else if (
+        hostname.includes("microsoft.com") ||
+        hostname.includes("office.com")
+      ) {
+        return "Microsoft Services";
       } else {
-        return { name: hostname, blocksProbable: false };
+        return hostname;
       }
     } catch {
-      return { name: "Unknown", blocksProbable: false };
+      return "This website";
     }
   };
 
+  // Handle iframe timeout for cases where onError doesn't fire
   useEffect(() => {
     if (project.liveDemoUrl && iframeLoading) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      // Very early check after DOM update
+      const immediateCheck = setTimeout(() => {
+        if (iframeLoading && !forceCheckIframeStatus()) {
+          // If force check didn't find issues, continue with normal flow
+          console.log("Immediate check: No obvious blocking detected");
+        }
+      }, 100); // Check almost immediately
 
-      const platform = detectPlatform(project.liveDemoUrl);
-      const timeoutDuration = platform.blocksProbable ? 3000 : 8000;
-      loadStartRef.current = Date.now();
-      
-      timeoutRef.current = setTimeout(() => {
+      // First quick check after 2 seconds for immediate blocking
+      const quickCheck = setTimeout(() => {
+        if (iframeLoading && !forceCheckIframeStatus()) {
+          const iframe = document.querySelector(
+            `iframe[data-key="iframe-${iframeKey}"]`
+          ) as HTMLIFrameElement;
+          if (iframe) {
+            try {
+              // Try to access iframe properties to detect blocking
+              const src = iframe.src;
+              const contentWindow = iframe.contentWindow;
+
+              // If we can't access contentWindow or it's null, likely blocked
+              if (!contentWindow || src !== project.liveDemoUrl) {
+                console.log("Quick check: Iframe likely blocked");
+                setIframeError(true);
+                setIframeLoading(false);
+                setErrorType("blocked");
+                return;
+              }
+            } catch {
+              console.log("Quick check: Iframe access error");
+              setIframeError(true);
+              setIframeLoading(false);
+              setErrorType("blocked");
+              return;
+            }
+          }
+        }
+      }, 2000); // Quick check after 2 seconds
+
+      // Main timeout for slow loading
+      const mainTimeout = setTimeout(() => {
         if (iframeLoading) {
+          console.log(
+            "Iframe timeout - likely blocked by security headers or slow loading"
+          );
           setIframeError(true);
           setIframeLoading(false);
+          setErrorType("timeout");
         }
-      }, timeoutDuration);
+      }, 8000); // Main timeout after 8 seconds
 
       return () => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
+        clearTimeout(immediateCheck);
+        clearTimeout(quickCheck);
+        clearTimeout(mainTimeout);
       };
     }
-  }, [project.liveDemoUrl, iframeLoading, iframeKey]);
+  }, [project.liveDemoUrl, iframeLoading, iframeKey, forceCheckIframeStatus]);
 
+  // Advanced iframe error detection using multiple methods
+  const checkIframeAccess = (iframe: HTMLIFrameElement) => {
+    try {
+      // Try to access iframe content - will throw if blocked by CORS/X-Frame-Options
+      const iframeDoc =
+        iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        setErrorType("blocked");
+        return false;
+      }
+      return true;
+    } catch {
+      console.log("Iframe access blocked");
+      setErrorType("blocked");
+      return false;
+    }
+  };
+
+  // Additional check for iframe loading using postMessage
   useEffect(() => {
-    const checkIframeHealth = () => {
-      if (iframeRef.current && iframeLoading && loadStartRef.current > 0) {
-        const elapsed = Date.now() - loadStartRef.current;
-        if (elapsed > 2000) {
+    if (project.liveDemoUrl && !iframeError && !iframeLoading) {
+      const checkConnection = setTimeout(() => {
+        const iframe = document.querySelector(
+          `iframe[data-key="iframe-${iframeKey}"]`
+        ) as HTMLIFrameElement;
+        if (iframe && !checkIframeAccess(iframe)) {
           setIframeError(true);
           setIframeLoading(false);
         }
-      }
-    };
+      }, 1000); // Check after 1 second of "successful" load
 
-    const healthCheckInterval = setInterval(checkIframeHealth, 1000);
-    
-    return () => clearInterval(healthCheckInterval);
-  }, [iframeLoading, iframeKey]);
+      return () => clearTimeout(checkConnection);
+    }
+  }, [project.liveDemoUrl, iframeError, iframeLoading, iframeKey]);
+
+  // Immediate check on component mount for known problematic URLs
+  useEffect(() => {
+    if (project.liveDemoUrl) {
+      const url = project.liveDemoUrl.toLowerCase();
+      const problematicDomains = [
+        "google.com",
+        "facebook.com",
+        "instagram.com",
+        "twitter.com",
+        "x.com",
+        "linkedin.com",
+        "youtube.com",
+        "github.com",
+        "notion.so",
+        "figma.com",
+        "canva.com",
+        "stripe.com",
+        "auth0.com",
+        "clerk.com",
+        "clerk.dev",
+      ];
+
+      const isProblematic = problematicDomains.some((domain) =>
+        url.includes(domain)
+      );
+
+      if (isProblematic) {
+        // For known problematic domains, show error faster
+        const fastCheck = setTimeout(() => {
+          if (iframeLoading) {
+            console.log("Known problematic domain detected, showing error");
+            setIframeError(true);
+            setIframeLoading(false);
+            setErrorType("blocked");
+          }
+        }, 1500); // Very quick for known blockers
+
+        return () => clearTimeout(fastCheck);
+      }
+    }
+  }, [project.liveDemoUrl, iframeLoading]);
 
   const handleDelete = async () => {
     if (
@@ -176,15 +397,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
         </div>
         <Button
           asChild
-          className="mt-4 mx-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300"
+          className="mt-4 mx-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
         >
           <Link href="/projects">Back to Projects</Link>
         </Button>
       </div>
     );
   }
-
-  const platform = project.liveDemoUrl ? detectPlatform(project.liveDemoUrl) : null;
 
   return (
     <div className="relative min-h-screen px-3 sm:px-4 py-6 sm:py-10 dark:text-white">
@@ -206,7 +425,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 
           <Button
             asChild
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg self-end sm:self-auto"
           >
             <Link href="/projects">Back to Projects</Link>
           </Button>
@@ -218,9 +437,25 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
         <div className="flex flex-col xl:flex-row gap-6 lg:gap-10">
           {/* Left Column - Project Details */}
           <div className="w-full xl:w-1/2">
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden dark:bg-gray-800/80 dark:border dark:border-gray-700 group relative transition-all dark:before:absolute dark:before:-inset-[2px] dark:before:z-[-1] dark:before:rounded-[inherit] dark:before:bg-[conic-gradient(from_var(--angle),transparent_20%,rgba(192,132,252,0.6)_50%,transparent_80%)] dark:before:opacity-0 dark:hover:before:opacity-100 dark:before:transition-opacity dark:before:duration-500 dark:after:absolute dark:after:-inset-[3px] dark:after:z-[-2] dark:after:rounded-[inherit] dark:after:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.4)_0%,transparent_70%)] dark:after:blur-[12px] dark:after:opacity-0 dark:hover:after:opacity-100 dark:after:transition-opacity dark:after:duration-700">
+            <Card
+              className="  
+          bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden  
+          dark:bg-gray-800/80 dark:border dark:border-gray-700  
+          group relative transition-all  
+          dark:before:absolute dark:before:-inset-[2px] dark:before:z-[-1]  
+          dark:before:rounded-[inherit] dark:before:bg-[conic-gradient(from_var(--angle),transparent_20%,rgba(192,132,252,0.6)_50%,transparent_80%)]  
+          dark:before:opacity-0 dark:hover:before:opacity-100  
+          dark:before:transition-opacity dark:before:duration-500  
+          dark:after:absolute dark:after:-inset-[3px] dark:after:z-[-2]  
+          dark:after:rounded-[inherit] dark:after:bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.4)_0%,transparent_70%)]  
+      dark:after:blur-[12px] dark:after:opacity-0 dark:hover:after:opacity-100  
+      dark:after:transition-opacity dark:after:duration-700  
+    "
+            >
               <CardContent className="p-4 sm:p-6">
+                {/* Project Details */}
                 <div className="space-y-6">
+                  {/* Featured Image */}
                   <div className="relative w-full aspect-video max-h-[400px] sm:max-h-[500px] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                     <Image
                       src={project.featuredImage}
@@ -232,6 +467,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     />
                   </div>
 
+                  {/* Project Info */}
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between gap-4">
                       <h1
@@ -247,7 +483,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         disabled={!project.liveDemoUrl}
                         className={`cursor-pointer py-5 rounded-xl font-medium text-base transition-all duration-300 group ${
                           project.liveDemoUrl
-                            ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md"
+                            ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md hover:-translate-y-0.5"
                             : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
                         }`}
                         onClick={() =>
@@ -260,15 +496,32 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         }
                       >
                         <span className="flex items-center gap-2">
-                          <ExternalLink className={`h-5 w-5 ${
-                            project.liveDemoUrl
-                              ? "text-blue-600 dark:text-blue-400"
-                              : "text-gray-400"
-                          }`} />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`${
+                              project.liveDemoUrl
+                                ? "text-blue-600 dark:text-blue-400"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" x2="21" y1="14" y2="3" />
+                          </svg>
                           <span className="hidden sm:inline">
                             Visit {project.title}
                           </span>
-                          <span className="sm:hidden">Visit</span>
+                          <span className="sm:hidden">
+                            Visit {project.title}
+                          </span>
                         </span>
                       </Button>
                     </div>
@@ -292,6 +545,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     </div>
                   </div>
 
+                  {/* Author & Metadata */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 gap-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
@@ -325,53 +579,28 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
           <div className="w-full xl:w-1/2">
             <div className="xl:sticky xl:top-24 space-y-6">
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-blue-600 dark:text-blue-400"
-                      >
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <line x1="2" x2="22" y1="10" y2="10" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
-                      Live Preview
-                    </h2>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-blue-600 dark:text-blue-400"
+                    >
+                      <rect width="20" height="14" x="2" y="5" rx="2" />
+                      <line x1="2" x2="22" y1="10" y2="10" />
+                    </svg>
                   </div>
-                  
-                  {platform && (
-                    <div className={`text-xs px-2 py-1 rounded-full ${
-                      platform.blocksProbable 
-                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-                        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                    }`}>
-                      {platform.name}
-                    </div>
-                  )}
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
+                    Live Preview
+                  </h2>
                 </div>
-
-                {platform && platform.blocksProbable && (
-                  <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-orange-800 dark:text-orange-200 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>
-                        <strong>{platform.name}</strong> blocks iframe embedding for security. 
-                        Use the &quot;Visit&quot; button to view the site.
-                      </span>
-                    </p>
-                  </div>
-                )}
-
                 <div
                   className={cn(
                     "relative h-[300px] sm:h-[400px] md:h-[500px] w-full overflow-hidden rounded-xl border",
@@ -381,48 +610,52 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 >
                   {project.liveDemoUrl ? (
                     <div className="relative w-full h-full">
-                      {iframeLoading && !iframeError && (
+                      {/* Loading State */}
+                      {iframeLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 z-10">
                           <div className="text-center">
                             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Loading preview from {platform?.name}...
+                              Loading preview...
                             </p>
-                            {loadAttempts > 0 && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                Attempt {loadAttempts + 1}
-                              </p>
-                            )}
                           </div>
                         </div>
                       )}
 
+                      {/* Error State */}
                       {iframeError && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 z-10 p-6 text-center">
-                          <AlertTriangle className="h-12 w-12 text-orange-500 mb-3" />
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Site Blocks Iframe
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-yellow-900/20 z-10 p-6 text-center border border-red-200 dark:border-red-800 rounded-xl">
+                          <div className="text-4xl mb-3">
+                            {getErrorMessage().icon}
+                          </div>
+                          <AlertTriangle className="h-8 w-8 text-red-500 mb-3" />
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            {getErrorMessage().title}
                           </h3>
-                          <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 max-w-sm">
-                            <p className="mb-2">
-                              <span className="font-semibold text-orange-600 dark:text-orange-400">
-                                {platform?.name}
-                              </span>{" "}
-                              refused to connect in iframe for security reasons.
+                          <div className="text-sm text-gray-600 dark:text-gray-300 mb-6 max-w-md">
+                            <p className="mb-3 leading-relaxed">
+                              {getErrorMessage().description}
                             </p>
-                            
-                            <div className="text-xs text-left bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                              <p className="font-medium mb-2">This happens when:</p>
-                              <ul className="list-disc list-inside space-y-1">
-                                <li>X-Frame-Options: DENY/SAMEORIGIN</li>
-                                <li>Content Security Policy blocks frames</li>
-                                <li>HTTPS/HTTP mixed content</li>
-                                <li>Server blocks iframe embedding</li>
+
+                            <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 text-left">
+                              <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 text-xs uppercase tracking-wide">
+                                Common Reasons:
+                              </h4>
+                              <ul className="text-xs space-y-1 text-gray-600 dark:text-gray-400">
+                                <li>
+                                  • Security headers (X-Frame-Options, CSP)
+                                </li>
+                                <li>
+                                  • Site doesn&apos;t allow iframe embedding
+                                </li>
+                                <li>• Authentication required</li>
+                                <li>• Slow network connection</li>
+                                <li>• Server temporarily unavailable</li>
                               </ul>
                             </div>
                           </div>
-                          
-                          <div className="flex gap-2">
+
+                          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
                             <Button
                               onClick={() =>
                                 project.liveDemoUrl &&
@@ -432,51 +665,93 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                                   "noopener,noreferrer"
                                 )
                               }
-                              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                              className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             >
                               <ExternalLink className="h-4 w-4 mr-2" />
-                              Open Full Site
+                              Open in New Tab
                             </Button>
-                            
-                            {loadAttempts < 2 && (
-                              <Button
-                                variant="outline"
-                                onClick={resetIframe}
-                                className="border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                            <Button
+                              variant="outline"
+                              onClick={resetIframe}
+                              className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-300"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2"
                               >
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Retry
-                              </Button>
-                            )}
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                <path d="M21 21v-5h-5" />
+                              </svg>
+                              Retry
+                            </Button>
+                          </div>
+
+                          <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
+                            💡 Most sites work better when opened directly in a
+                            new tab
                           </div>
                         </div>
                       )}
 
+                      {/* Iframe */}
                       <iframe
-                        ref={iframeRef}
                         key={`iframe-${iframeKey}`}
+                        data-key={`iframe-${iframeKey}`}
                         src={project.liveDemoUrl}
-                        title={`Live Demo Preview - ${project.title}`}
-                        className="w-full h-full border-0"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        loading="eager"
+                        title="Live Demo Preview"
+                        className="w-full h-full"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
+                        referrerPolicy="no-referrer-when-downgrade"
                         onLoad={() => {
-                          const elapsed = Date.now() - loadStartRef.current;
-                          if (elapsed > 500) {
-                            setIframeLoading(false);
-                            setIframeError(false);
-                            if (timeoutRef.current) {
-                              clearTimeout(timeoutRef.current);
+                          console.log("Iframe loaded successfully");
+                          // Double-check that it actually loaded content
+                          setTimeout(() => {
+                            const iframe = document.querySelector(
+                              `iframe[data-key="iframe-${iframeKey}"]`
+                            ) as HTMLIFrameElement;
+                            if (iframe) {
+                              try {
+                                // Try to verify the iframe actually has content
+                                const contentWindow = iframe.contentWindow;
+                                if (contentWindow) {
+                                  setIframeLoading(false);
+                                  setIframeError(false);
+                                  setErrorType("unknown");
+                                } else {
+                                  // contentWindow is null, likely blocked
+                                  setIframeLoading(false);
+                                  setIframeError(true);
+                                  setErrorType("blocked");
+                                }
+                              } catch {
+                                // Access error, definitely blocked
+                                setIframeLoading(false);
+                                setIframeError(true);
+                                setErrorType("blocked");
+                              }
+                            } else {
+                              // Fallback if load event fired but content seems blocked
+                              setIframeLoading(false);
+                              setIframeError(false);
+                              setErrorType("unknown");
                             }
-                          }
+                          }, 500); // Check half second after load event
                         }}
-                        onError={() => {
+                        onError={(e) => {
+                          console.log("Iframe error event:", e);
                           setIframeLoading(false);
                           setIframeError(true);
-                          if (timeoutRef.current) {
-                            clearTimeout(timeoutRef.current);
-                          }
+                          setErrorType("network");
                         }}
                         style={{
                           opacity: iframeLoading || iframeError ? 0 : 1,
@@ -497,45 +772,50 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                         Demo Unavailable
                       </h3>
                       <p className="max-w-xs text-sm">
-                        This project doesn&apos;t have a live demo URL
+                        This project doesn&apos;t have a live demo
                       </p>
                     </div>
                   )}
                 </div>
 
-                <Button
-                  variant="outline"
-                  disabled={!project.liveDemoUrl}
-                  className={`w-full py-5 rounded-xl font-medium text-base transition-all duration-300 group mt-4 ${
-                    project.liveDemoUrl
-                      ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md hover:-translate-y-0.5"
-                      : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                  }`}
-                  onClick={() =>
-                    project.liveDemoUrl &&
-                    window.open(
-                      project.liveDemoUrl,
-                      "_blank",
-                      "noopener,noreferrer"
-                    )
-                  }
-                >
-                  <span className="flex items-center gap-2">
-                    <ExternalLink className={`h-5 w-5 ${
-                      project.liveDemoUrl
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-400"
-                    }`} />
-                    <span>Visit {project.title}</span>
-                  </span>
-                </Button>
+                {/* Enhanced helpful notice for users */}
+                {project.liveDemoUrl && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                          Preview not working?
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-300">
+                          Open manually in a new tab for the full experience.
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={() =>
+                          project.liveDemoUrl &&
+                          window.open(
+                            project.liveDemoUrl,
+                            "_blank",
+                            "noopener,noreferrer"
+                          )
+                        }
+                        className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-sm hover:shadow-md"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visit {project.title}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Action Buttons */}
               <div className="flex gap-4">
                 {isProjectOwner && (
                   <Button
                     asChild
-                    className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300"
+                    className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 hover:shadow-lg"
                   >
                     <Link href={`/projects/${project.id}/edit`}>
                       Edit Project
@@ -546,7 +826,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 <Button
                   variant="outline"
                   disabled={!project.codes}
-                  className={`flex-1 py-6 rounded-xl text-gray-900 font-bold shadow-sm transition-all duration-300 ${
+                  className={`cursor-pointer flex-1 py-6 rounded-xl text-gray-900 font-bold shadow-sm transition-all duration-300 ${
                     project.codes
                       ? "border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                       : "border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-600 cursor-not-allowed"
@@ -558,13 +838,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 >
                   View Code
                 </Button>
-                
                 {isProjectOwner && (
                   <Button
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className={cn(
-                      "py-6 rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:shadow-lg",
+                      "py-6 rounded-xl text-white font-bold shadow-md transition-all duration-300 hover:shadow-lg cursor-pointer",
                       "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700",
                       "disabled:opacity-70 disabled:cursor-not-allowed"
                     )}
