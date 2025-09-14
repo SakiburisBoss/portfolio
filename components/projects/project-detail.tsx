@@ -140,7 +140,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
         )}>
           <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mb-4 dark:bg-gray-700 dark:border-gray-600" />
           <h3 className="text-lg font-medium mb-1">Demo Unavailable</h3>
-          <p className="max-w-xs text-sm">This project doesn't have a live demo</p>
+          <p className="max-w-xs text-sm">This project doesn&apos;t have a live demo</p>
         </div>
       );
     }
