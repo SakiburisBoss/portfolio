@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Prisma } from "@prisma/client";
 import { deleteProject } from "@/actions/projects/delete-project";
-import { Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 type ProjectDetailState = {
   project: Prisma.ProjectsGetPayload<{ include: { author: true } }>;
@@ -23,162 +23,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  // iframe state
-  const [iframeStatus, setIframeStatus] = useState<
-    "loading" | "checking" | "working" | "failed"
-  >("loading");
-  const [showIframe, setShowIframe] = useState(false);
-  const [frameError, setFrameError] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  // Debug: Log iframe status changes
-  useEffect(() => {
-    // Status change tracking (removed console.log for production)
-  }, [iframeStatus]);
-
-  // Debug: Log showIframe changes
-  useEffect(() => {
-    // showIframe change tracking (removed console.log for production)
-  }, [showIframe]);
-
-  const resetIframe = () => {
-    setIframeStatus("loading");
-    setShowIframe(false);
-    setFrameError(null); // Clear any previous frame errors
-    // Reset iframe after a brief delay
-    setTimeout(() => {
-      setShowIframe(true);
-      setIframeStatus("checking");
-    }, 100);
-  };
-
-  const getErrorMessage = () => {
-    if (frameError) {
-      return {
-        title: "Website Blocks Iframe Preview",
-        description: (
-          <>
-            This website has security settings that prevent it from being
-            displayed in an iframe preview.
-            <br />
-            <span className="text-xs opacity-75 mt-1 block">
-              Error: {frameError}
-            </span>
-          </>
-        ),
-        icon: "🔒",
-      };
-    }
-
-    return {
-      title: "Preview Not Available",
-      description: (
-        <>
-          This website cannot be displayed in an iframe preview for security
-          reasons.
-        </>
-      ),
-      icon: "🚫",
-    };
-  };
-
-  // Initial iframe show delay for UX
-  useEffect(() => {
-    if (!project.liveDemoUrl) {
-      return;
-    }
-    const timer = setTimeout(() => {
-      setShowIframe(true);
-      setIframeStatus("checking");
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [project.liveDemoUrl]);
-
-  // Frame blocking detection and timeout handling
-  useEffect(() => {
-    if (!project.liveDemoUrl) {
-      return;
-    }
-
-    console.log(
-      "� Setting up frame blocking detection for:",
-      project.liveDemoUrl
-    );
-
-    // Enhanced frame blocking detection - check after a short delay
-    const frameCheckTimer = setTimeout(() => {
-      console.log("🔍 Checking for frame blocking...");
-      const iframe = iframeRef.current;
-
-      if (iframe) {
-        try {
-          // Try to access iframe document - this will throw if blocked
-          const doc = iframe.contentDocument || iframe.contentWindow?.document;
-
-          if (!doc) {
-            console.log(
-              "🚫 No document access - likely blocked by X-Frame-Options"
-            );
-            setFrameError(
-              "Website blocks iframe embedding (X-Frame-Options: deny)"
-            );
-            setIframeStatus("failed");
-            return;
-          }
-
-          // Check if iframe has been redirected to about:blank or error page
-          const currentSrc = iframe.contentWindow?.location?.href;
-          if (
-            currentSrc === "about:blank" ||
-            currentSrc?.includes("about:blank")
-          ) {
-            console.log("🚫 Iframe redirected to about:blank - likely blocked");
-            setFrameError(
-              "Website blocks iframe embedding (redirected to blank page)"
-            );
-            setIframeStatus("failed");
-            return;
-          }
-
-          console.log("✅ Frame access check passed");
-        } catch (error) {
-          console.log("🚫 Frame access denied:", error);
-          setFrameError(
-            "Website blocks iframe embedding (frame access denied)"
-          );
-          setIframeStatus("failed");
-          return;
-        }
-      }
-    }, 2000); // Check after 2 seconds
-
-    // fallback timeout - only set once when iframe starts loading
-    const timer = setTimeout(() => {
-      console.log("⏱️ 5-second timeout reached, checking current status...");
-      setIframeStatus((current) => {
-        console.log(
-          "📊 Current status:",
-          current,
-          "-> Setting to:",
-          current === "working" ? "working" : "failed"
-        );
-        if (current !== "working") {
-          // If we haven't detected a specific frame error, set a generic one
-          setFrameError(
-            (prev) => prev || "Timeout - website may not allow iframe embedding"
-          );
-        }
-        return current === "working" ? "working" : "failed";
-      });
-    }, 5000);
-
-    return () => {
-      console.log("🧹 Cleaning up frame detection timers");
-      clearTimeout(timer);
-      clearTimeout(frameCheckTimer);
-    };
-  }, [project.liveDemoUrl]);
 
   const handleDelete = async () => {
     if (
@@ -219,13 +63,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
   return (
     <div className="px-4 sm:px-6 py-8 animate-fade-in-up">
       {/* Sticky Header */}
-      <div className="mb-6 relative">
+      <div className="sticky top-10 z-40 bg-white/95 dark:bg-purple-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 mb-4 px-4 py-6 flex justify-between items-center -mt-8">
         <h1 className="text-3xl font-extrabold">Project Details</h1>
         <span
           className="absolute bottom-1 left-0 w-full h-2 bg-blue-100 dark:bg-blue-900/50 -z-10 opacity-70"
           style={{ transform: "skewX(-12deg)" }}
         />
-        <Button asChild className="absolute right-0 top-0">
+        <Button asChild className="">
           <Link href="/projects">Back to Projects</Link>
         </Button>
       </div>
@@ -265,7 +109,23 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                       )
                     }
                   >
-                    Visit {project.title}
+                    <span className="relative z-10 flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 transition-transform group-hover:rotate-12"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                      Visit{" "}
+                      <span className="text-yellow-500">{project.title}</span>
+                    </span>
                   </Button>
                 </div>
 
@@ -313,7 +173,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
 
         {/* Right Column - Live Preview */}
         <div className="w-full xl:w-1/2">
-          <div className="xl:sticky xl:top-24 space-y-6">
+          <div className="xl:sticky xl:top-36 space-y-6">
             <Card className="p-4 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
               <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400 mb-4">
                 Live Preview
@@ -326,137 +186,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 )}
               >
                 {project.liveDemoUrl ? (
-                  <>
-                    {(iframeStatus === "loading" ||
-                      iframeStatus === "checking") && (
-                      <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-50 dark:bg-gray-800">
-                        <div className="text-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {iframeStatus === "loading"
-                              ? "Preparing preview..."
-                              : "Loading preview..."}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {iframeStatus === "failed" && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center border border-red-200 dark:border-red-800 rounded-xl bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-yellow-900/20">
-                        <AlertTriangle className="h-8 w-8 text-red-500 mb-3" />
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                          {getErrorMessage().title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                          {getErrorMessage().description}
-                        </p>
-                        <div className="flex gap-3 flex-wrap justify-center">
-                          <Button onClick={resetIframe} variant="outline">
-                            Retry Preview
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              project.liveDemoUrl &&
-                              window.open(
-                                project.liveDemoUrl,
-                                "_blank",
-                                "noopener,noreferrer"
-                              )
-                            }
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            Preview not working? Open in New Tab
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {showIframe && iframeStatus !== "failed" && (
-                      <iframe
-                        ref={iframeRef}
-                        src={project.liveDemoUrl ?? undefined}
-                        title="Live Demo Preview"
-                        className="w-full h-full"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        loading="eager"
-                        onLoad={() => {
-                          console.log("🎯 Iframe onLoad event fired");
-
-                          // Enhanced blocking detection on load
-                          const iframe = iframeRef.current;
-                          if (iframe) {
-                            try {
-                              // Check if we can access the iframe's document
-                              const doc =
-                                iframe.contentDocument ||
-                                iframe.contentWindow?.document;
-                              const location = iframe.contentWindow?.location;
-
-                              console.log("🔍 Iframe document check:", {
-                                hasDocument: !!doc,
-                                locationHref: location?.href,
-                                expectedUrl: project.liveDemoUrl,
-                              });
-
-                              // If iframe loads but shows about:blank, it's likely blocked
-                              if (location?.href === "about:blank" || !doc) {
-                                console.log(
-                                  "� Iframe blocked - showing about:blank or no document access"
-                                );
-                                setFrameError(
-                                  "Website blocks iframe embedding (X-Frame-Options: deny)"
-                                );
-                                setIframeStatus("failed");
-                                return;
-                              }
-
-                              // If location doesn't match what we expected, might be blocked/redirected
-                              if (location?.href !== project.liveDemoUrl) {
-                                console.log(
-                                  "🚫 Iframe URL mismatch - expected:",
-                                  project.liveDemoUrl,
-                                  "got:",
-                                  location?.href
-                                );
-                                setFrameError(
-                                  "Website redirected iframe or blocked embedding"
-                                );
-                                setIframeStatus("failed");
-                                return;
-                              }
-
-                              console.log("✅ Iframe content seems accessible");
-                            } catch (securityError) {
-                              console.log(
-                                "🚫 Security error accessing iframe:",
-                                securityError
-                              );
-                              setFrameError(
-                                "Website blocks iframe embedding (security restrictions)"
-                              );
-                              setIframeStatus("failed");
-                              return;
-                            }
-                          }
-
-                          // If we get here, iframe loaded successfully
-                          console.log(
-                            "✅ Iframe loaded successfully, setting status to working"
-                          );
-                          setIframeStatus("working");
-                        }}
-                        onError={() => {
-                          console.log("💥 Iframe onError event fired");
-                          setIframeStatus("failed");
-                        }}
-                        style={{
-                          opacity: iframeStatus === "working" ? 1 : 0.1,
-                          transition: "opacity 0.3s ease-in-out",
-                        }}
-                      />
-                    )}
-                  </>
+                  <iframe
+                    src={project.liveDemoUrl}
+                    title={project.title}
+                    className="w-full h-full border-0"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  ></iframe>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 text-gray-400 dark:text-gray-500 rounded-xl border-2 border-dashed dark:border-gray-600">
                     <h3 className="text-lg font-medium mb-1">
@@ -467,6 +202,55 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Modern Preview Actions Section */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/30 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                <div className="flex  gap-4 items-start sm:items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Preview not working?
+                    </p>
+                  </div>
+
+                  <button
+                    disabled={!project.liveDemoUrl}
+                    className={cn(
+                      "group relative px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow-lg",
+                      "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700",
+                      "text-white hover:shadow-xl transform hover:-translate-y-0.5",
+                      "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md",
+                      "disabled:bg-gradient-to-r disabled:from-gray-400 disabled:to-gray-500"
+                    )}
+                    onClick={() =>
+                      project.liveDemoUrl &&
+                      window.open(
+                        project.liveDemoUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
+                    }
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 transition-transform group-hover:rotate-12"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                      Open in New Tab
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </button>
+                </div>
               </div>
             </Card>
 
