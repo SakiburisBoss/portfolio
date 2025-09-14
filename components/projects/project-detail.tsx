@@ -99,6 +99,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   </h2>
                   <Button
                     variant="outline"
+                    className="cursor-pointer"
                     disabled={!project.liveDemoUrl}
                     onClick={() =>
                       project.liveDemoUrl &&
