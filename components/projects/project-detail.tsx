@@ -219,7 +219,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   <button
                     disabled={!project.liveDemoUrl}
                     className={cn(
-                      "group relative px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow-lg",
+                      "cursor-pointer group relative px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow-lg",
                       "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700",
                       "text-white hover:shadow-xl transform hover:-translate-y-0.5",
                       "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md",
@@ -290,7 +290,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                 variant="outline"
                 disabled={!project.codes}
                 className={cn(
-                  "group relative overflow-hidden flex-1 py-6 rounded-xl font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1",
+                  "cursor-pointer group relative overflow-hidden flex-1 py-6 rounded-xl font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1",
                   "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-700",
                   "border-2 border-emerald-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-gray-500",
                   "text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300",
@@ -326,7 +326,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className={cn(
-                    "group relative overflow-hidden py-6 rounded-xl text-white font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-0",
+                    "cursor-pointer group relative overflow-hidden py-6 rounded-xl text-white font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-0",
                     "bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:via-red-700 hover:to-rose-700",
                     "hover:shadow-xl hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md",
                     isDeleting ? "cursor-not-allowed bg-gray-500" : ""
