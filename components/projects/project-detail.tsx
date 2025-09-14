@@ -255,7 +255,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
             </Card>
 
             {/* Action Buttons */}
-           <div className="flex justify-between">
+           <div className="flex gap-4 justify-between">
   {isProjectOwner && (
     <Button
       asChild
