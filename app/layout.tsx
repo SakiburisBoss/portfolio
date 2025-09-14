@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -73,20 +72,23 @@ export default function RootLayout({
             content="Sakibur's Portfolio"
           />
         </head>
-        <body>
+        <body className="min-h-screen relative">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br  from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900"></div>
+            {/* Fixed background that covers full document */}
+            <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-slate-900 -z-50"></div>
 
-              {/* Subtle glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 dark:from-blue-400/5 dark:to-purple-500/5 blur-3xl"></div>
-            <NavBar />
-            {children}
+            {/* Subtle glow effect */}
+            <div className="fixed inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 dark:from-blue-400/5 dark:to-purple-500/5 blur-3xl -z-40"></div>
+            
+            <div className="relative z-10">
+              <NavBar />
+              {children}
+            </div>
           </ThemeProvider>
         </body>
       </html>
