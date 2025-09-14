@@ -6,10 +6,17 @@ type Project = {
   id: string;
   title: string;
   description: string;
-  liveDemoUrl: string | null; // allow null
+  liveDemoUrl: string | null;
+  authorId: string;
 };
 
-export default function ProjectDetailPage({ project }: { project: Project }) {
+export default function ProjectDetailPage({
+  project,
+  isProjectOwner,
+}: {
+  project: Project;
+  isProjectOwner: boolean;
+}) {
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
   const [errorType, setErrorType] = useState<
@@ -28,7 +35,6 @@ export default function ProjectDetailPage({ project }: { project: Project }) {
         await fetch(project.liveDemoUrl, { method: "HEAD", mode: "no-cors" });
       } catch {
         if (!cancelled) {
-          console.log("Fetch failed → network error");
           setIframeError(true);
           setIframeLoading(false);
           setErrorType("network");
@@ -40,7 +46,6 @@ export default function ProjectDetailPage({ project }: { project: Project }) {
 
     const timeout = setTimeout(() => {
       if (!cancelled && iframeLoading) {
-        console.log("Iframe stuck → marking embedBlocked");
         setIframeError(true);
         setIframeLoading(false);
         setErrorType("embedBlocked");
@@ -57,6 +62,12 @@ export default function ProjectDetailPage({ project }: { project: Project }) {
     <div className="w-full h-screen flex flex-col">
       <h1 className="text-2xl font-bold p-4">{project.title}</h1>
       <p className="px-4">{project.description}</p>
+
+      {isProjectOwner && (
+        <div className="px-4 py-2 text-sm text-green-600">
+          ✅ You are the owner of this project
+        </div>
+      )}
 
       <div className="flex-1 relative bg-gray-100 mt-4">
         {!project.liveDemoUrl ? (
@@ -120,7 +131,6 @@ export default function ProjectDetailPage({ project }: { project: Project }) {
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
               referrerPolicy="no-referrer-when-downgrade"
               onLoad={() => {
-                console.log("Iframe load event fired");
                 if (!iframeError) {
                   setIframeLoading(false);
                   setIframeError(false);
@@ -128,7 +138,6 @@ export default function ProjectDetailPage({ project }: { project: Project }) {
                 }
               }}
               onError={() => {
-                console.log("Iframe network error");
                 setIframeLoading(false);
                 setIframeError(true);
                 setErrorType("network");
