@@ -18,7 +18,7 @@ const ContactPage = () => {
   return (
     <section
       id="contact"
-      className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-indigo-950 dark:to-gray-900"
+      className="min-h-screen "
     >
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
