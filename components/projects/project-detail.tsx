@@ -255,50 +255,77 @@ export const ProjectDetailPage: React.FC<ProjectDetailState> = ({
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              {isProjectOwner && (
-                <Button
-                  asChild
-                  className="flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md"
-                >
-                  <Link href={`/projects/${project.id}/edit`}>
-                    Edit Project
-                  </Link>
-                </Button>
-              )}
+           <div className="flex justify-between">
+  {isProjectOwner && (
+    <Button
+      asChild
+      className="group relative overflow-hidden flex-1 py-6 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0"
+    >
+      <Link href={`/projects/${project.id}/edit`} className="flex items-center justify-center gap-2">
+        <svg className="w-4 h-4 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit Project
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </Link>
+    </Button>
+  )}
 
-              <Button
-                variant="outline"
-                disabled={!project.codes}
-                className="flex-1 py-6 rounded-xl text-gray-900 font-bold shadow-sm"
-                onClick={() =>
-                  project.codes &&
-                  window.open(project.codes, "_blank", "noopener,noreferrer")
-                }
-              >
-                View Code
-              </Button>
+  <Button
+    variant="outline"
+    disabled={!project.codes}
+    className={cn(
+      "group relative overflow-hidden flex-1 py-6 rounded-xl font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1",
+      "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-700",
+      "border-2 border-emerald-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-gray-500",
+      "text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300",
+      "hover:shadow-xl hover:bg-gradient-to-r hover:from-emerald-100 hover:to-teal-100 dark:hover:from-gray-700 dark:hover:to-gray-600",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md disabled:bg-gray-100 dark:disabled:bg-gray-800"
+    )}
+    onClick={() =>
+      project.codes &&
+      window.open(project.codes, "_blank", "noopener,noreferrer")
+    }
+  >
+    <span className="relative z-10 flex items-center justify-center gap-2">
+      <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+      View Code
+    </span>
+    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  </Button>
 
-              {isProjectOwner && (
-                <Button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="py-6 rounded-xl text-white font-bold shadow-md bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? (
-                    <span className="flex items-center justify-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </span>
-                  )}
-                </Button>
-              )}
-            </div>
+  {isProjectOwner && (
+    <Button
+      onClick={handleDelete}
+      disabled={isDeleting}
+      className={cn(
+        "group relative overflow-hidden py-6 rounded-xl text-white font-bold shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-0",
+        "bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:via-red-700 hover:to-rose-700",
+        "hover:shadow-xl hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md",
+        isDeleting ? "cursor-not-allowed bg-gray-500" : ""
+      )}
+    >
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        {isDeleting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Deleting...</span>
+          </>
+        ) : (
+          <>
+            <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <span>Delete</span>
+          </>
+        )}
+      </span>
+      {!isDeleting && (
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      )}
+    </Button>
+  )}
+</div>
 
             {deleteError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">
